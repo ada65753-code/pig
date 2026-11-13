@@ -1,0 +1,1610 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>猪猪勇闯神庙 · Piggy Temple Run</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet" />
+    <style>
+      button, [role="button"] { min-height: 2.75rem; }
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      :root{
+        --ink:#33301f;
+        --ink-soft:#7d7458;
+        --paper:#f6efdb;
+        --panel:#fffdf4;
+        --line:#e0d0a2;
+        --pink:#ff8fb5;
+        --pink-deep:#f2608f;
+        --jungle:#4c9440;
+        --jungle-deep:#2f6b2f;
+        --stone:#8a7c5c;
+        --stone-dark:#5d5138;
+        --danger:#e14b4b;
+        --gold:#e8a812;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark){
+        :root{
+          --ink:#f2e8d5;
+          --ink-soft:#cbbd9d;
+          --paper:#241f16;
+          --panel:#33291d;
+          --line:#5d4f33;
+          --jungle:#356b35;
+          --jungle-deep:#224d24;
+          color-scheme: dark;
+        }
+      }
+      html,body{ margin:0; padding:0; }
+      body{
+        font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+        color:var(--ink);
+        background:
+          radial-gradient(120px 46px at 12% 6%, rgba(255,255,255,.8) 60%, transparent 61%),
+          radial-gradient(160px 58px at 84% 4%, rgba(255,255,255,.75) 60%, transparent 61%),
+          linear-gradient(180deg, #bfe3f7 0%, #dff3d8 30%, var(--jungle) 76%, var(--jungle-deep) 100%);
+        min-height:100vh;
+        overflow-x:clip;
+      }
+      @media (prefers-color-scheme: dark){
+        body{ background:linear-gradient(180deg,#1d3247 0%, #274a38 55%, #1e4630 100%); }
+      }
+      .app{ max-width:480px; margin:0 auto; padding:14px 14px 28px; }
+
+      /* ---------- header ---------- */
+      header.top{ display:flex; align-items:center; gap:10px; }
+      .mascot{ width:56px; height:56px; flex:0 0 auto; filter:drop-shadow(0 3px 0 rgba(0,0,0,.12)); }
+      .title-wrap{ flex:1; min-width:0; }
+      .lang-toggle{
+        flex:0 0 auto; display:flex; background:var(--panel); border:2px solid var(--line); border-radius:999px; padding:3px; gap:2px; box-shadow:0 2px 0 rgba(0,0,0,.08);
+      }
+      .lang-toggle button{
+        border:none; background:transparent; color:var(--ink-soft); font-weight:800; font-size:12.5px; padding:5px 10px; border-radius:999px; cursor:pointer; min-height:2rem; font-family:inherit; line-height:1;
+      }
+      .lang-toggle button.active{ background:var(--jungle-deep); color:#fff; }
+      h1{
+        font-family:"ZCOOL KuaiLe","PingFang SC",sans-serif;
+        font-size:26px; line-height:1.1; margin:0; letter-spacing:1px; white-space:nowrap;
+        color:var(--jungle-deep);
+        text-shadow:0 2px 0 #fff, 0 4px 0 rgba(47,107,47,.25);
+      }
+      @media (prefers-color-scheme: dark){ h1{ color:#a5d6a0; text-shadow:0 2px 0 rgba(0,0,0,.35); } }
+      .subtitle{ margin:3px 0 0; font-size:12.5px; color:var(--ink-soft); }
+
+      /* ---------- stats ---------- */
+      .stats{
+        margin-top:12px; background:var(--panel); border:2px solid var(--line); border-radius:14px;
+        padding:9px 12px; display:flex; align-items:center; gap:10px; font-size:13px;
+      }
+      .stats b{ font-size:15px; white-space:nowrap; }
+      .progress{ flex:1; height:10px; border-radius:99px; background:rgba(0,0,0,.08); overflow:hidden; min-width:40px; }
+      .progress > i{ display:block; height:100%; width:0%; border-radius:99px;
+        background:linear-gradient(90deg,var(--gold),var(--jungle)); transition:width .2s linear; }
+
+      /* ---------- stage (runner canvas) ---------- */
+      .stage-wrap{
+        position:relative; margin-top:12px; border-radius:18px; overflow:hidden;
+        border:3px solid var(--stone-dark);
+        box-shadow:0 10px 24px rgba(30,60,25,.3), inset 0 0 0 2px rgba(255,255,255,.15);
+        background:#9fd3e8;
+        touch-action:none;
+        user-select:none; -webkit-user-select:none;
+      }
+      .stage-wrap.shake{ animation:stageShake .4s ease; }
+      @keyframes stageShake{ 15%{transform:translateX(-7px);} 35%{transform:translateX(6px);} 55%{transform:translateX(-4px);} 75%{transform:translateX(3px);} 100%{transform:translateX(0);} }
+      canvas#gameCanvas{ display:block; width:100%; aspect-ratio:10/11; }
+      .pause-btn{
+        position:absolute; top:8px; right:8px; z-index:20;
+        width:40px; min-height:40px; height:40px; border-radius:50%;
+        border:2px solid rgba(255,255,255,.7); background:rgba(40,32,14,.55); color:#fff;
+        font-size:16px; cursor:pointer; line-height:1; padding:0;
+      }
+      .toast{
+        position:absolute; left:50%; top:14px; transform:translate(-50%,-8px);
+        background:rgba(40,32,14,.88); color:#ffe9b8; font-size:13.5px; font-weight:700;
+        padding:8px 16px; border-radius:999px; opacity:0; pointer-events:none; transition:.25s ease; z-index:30;
+        white-space:nowrap; max-width:92%;
+      }
+      .toast.show{ opacity:1; transform:translate(-50%,0); }
+      .ctrl-tip{ margin:8px 2px 0; font-size:12.5px; color:var(--ink-soft); min-height:18px; }
+      .ctrl-tip b{ color:var(--jungle-deep); }
+      @media (prefers-color-scheme: dark){ .ctrl-tip b{ color:#a5d6a0; } }
+
+      /* ---------- run controls ---------- */
+      .controls{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px; }
+      .ctl{
+        border:2px solid var(--line); background:var(--panel); border-radius:14px; cursor:pointer;
+        padding:8px 2px 7px; display:flex; flex-direction:column; align-items:center; gap:1px;
+        color:var(--ink); font-family:inherit;
+        box-shadow:0 3px 0 rgba(0,0,0,.12);
+        touch-action:manipulation; user-select:none; -webkit-user-select:none;
+      }
+      .ctl:active{ transform:translateY(2px); box-shadow:none; background:#fdf3d0; }
+      .ctl .c-ico{ font-size:21px; line-height:1.15; }
+      .ctl .c-name{ font-size:13px; font-weight:800; }
+
+      .howto{ margin-top:14px; font-size:12.5px; line-height:1.65; color:var(--ink-soft);
+        background:rgba(255,255,255,.45); border-radius:12px; padding:9px 12px; }
+      @media (prefers-color-scheme: dark){ .howto{ background:rgba(0,0,0,.22); } }
+      .howto b{ color:var(--ink); }
+
+      /* ---------- alert & lives ---------- */
+      .alert-bar{
+        background:#ffe9a8; color:#6b4e00; border:2px solid #f2cf6b; border-radius:10px;
+        padding:8px 10px; font-size:12.5px; font-weight:700; text-align:center; line-height:1.5; margin-bottom:12px;
+      }
+      @media (prefers-color-scheme: dark){ .alert-bar{ background:#4a3a10; color:#ffe1a1; border-color:#8a6d1f; } }
+      .lives-bar{
+        margin-top:10px; background:var(--panel); border:2px solid var(--line); border-radius:14px;
+        padding:8px 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:13px;
+      }
+      .lives-bar .lb-label{ font-weight:800; white-space:nowrap; }
+      .lb-hearts{ font-size:13px; letter-spacing:1px; flex:1; min-width:120px; }
+      .lb-num{ font-weight:800; white-space:nowrap; }
+      .lb-add{
+        border:2px solid var(--jungle-deep); background:var(--jungle); color:#fff; font-weight:800;
+        border-radius:999px; padding:5px 14px; font-size:13px; cursor:pointer; min-height:2.2rem; font-family:inherit;
+      }
+
+      /* ---------- gate panels ---------- */
+      .gate-lives{ display:flex; align-items:center; justify-content:center; gap:8px; margin-top:6px; font-size:15px; flex-wrap:wrap; }
+      .gate-lives-num b{ font-size:17px; color:var(--jungle-deep); }
+      .lock-note{ display:none; color:var(--danger); font-weight:800; font-size:13.5px; }
+      .panel{ border:2px solid var(--line); border-radius:14px; padding:12px; margin-top:14px; text-align:left; }
+      .panel-title{ font-weight:800; font-size:14.5px; margin-bottom:4px; }
+      .panel p{ font-size:13px; margin:6px 0; }
+      .panel-note{ font-size:12px !important; color:var(--ink-soft); line-height:1.55; }
+      .code-chip{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; background:rgba(0,0,0,.07); padding:2px 9px; border-radius:7px; font-weight:800; letter-spacing:1px; font-size:14px; }
+      @media (prefers-color-scheme: dark){ .code-chip{ background:rgba(255,255,255,.12); } }
+      .link-text{ font-size:12px; word-break:break-all; color:var(--jungle-deep); font-weight:700; }
+      @media (prefers-color-scheme: dark){ .link-text{ color:#a5d6a0; } }
+      .btn.sm{ padding:9px; font-size:14px; margin-top:8px; }
+      a.btn{ text-decoration:none; }
+      .bn-btn{ background:#f0b90b; color:#1e2329; box-shadow:0 4px 0 #c99400; }
+      .bn-btn:active{ box-shadow:0 1px 0 #c99400; }
+      .input-row{ display:flex; gap:6px; margin-top:10px; }
+      .txt-input{
+        flex:1; min-width:0; padding:10px; border:2px solid var(--line); border-radius:10px;
+        font-size:16px; font-family:inherit; background:var(--panel); color:var(--ink);
+      }
+      .mini-btn{
+        border:none; background:var(--jungle-deep); color:#fff; font-weight:800; font-size:13.5px;
+        border-radius:10px; padding:0 14px; cursor:pointer; white-space:nowrap; font-family:inherit;
+      }
+      .msg{ min-height:20px; font-size:13px; font-weight:700; color:var(--danger); margin:8px 0 0 !important; }
+      .msg.ok{ color:var(--jungle-deep); }
+      .redeem-box{ text-align:left; border:2px dashed var(--gold); border-radius:14px; padding:10px 12px; margin:10px 0; }
+      .redeem-box .txt-input{ width:100%; margin-top:8px; }
+      .safe-tip{
+        background:#e7f6e3; border:2px solid #bfe3b6; color:#2e5f2a; border-radius:12px;
+        padding:10px 12px; font-size:12.5px; line-height:1.65; text-align:left; margin-top:12px;
+      }
+      @media (prefers-color-scheme: dark){ .safe-tip{ background:#22402a; border-color:#3f7d4e; color:#cdeac8; } }
+
+      /* ---------- points & level map ---------- */
+      .points-bar{
+        margin-top:10px; background:var(--panel); border:2px solid var(--gold); border-radius:14px;
+        padding:8px 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:13px;
+      }
+      .pb-num{ font-weight:800; font-size:16px; color:#b97e00; white-space:nowrap; }
+      @media (prefers-color-scheme: dark){ .pb-num{ color:var(--gold); } }
+      .points-bar .progress{ flex:1; min-width:80px; }
+      .pb-usdt{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+      .lb-add.gold{ border-color:#c99400; background:#f0b90b; color:#1e2329; }
+      .level-map{ display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-top:10px; }
+      .lv-btn{
+        border:2px solid var(--line); background:var(--panel); color:var(--ink); border-radius:11px;
+        padding:6px 2px 5px; cursor:pointer; font-family:inherit; display:flex; flex-direction:column;
+        align-items:center; gap:0; box-shadow:0 2px 0 rgba(0,0,0,.07); min-height:3rem;
+      }
+      .lv-btn .lv-n{ font-size:15px; font-weight:800; line-height:1.15; }
+      .lv-btn .lv-s{ font-size:10.5px; color:var(--ink-soft); line-height:1.2; }
+      .lv-btn.cleared{ background:#e7f6e3; border-color:#8ed081; }
+      .lv-btn.cleared .lv-s{ color:var(--jungle-deep); font-weight:700; }
+      @media (prefers-color-scheme: dark){ .lv-btn.cleared{ background:#22402a; border-color:#3f7d4e; } }
+      .lv-btn.current{ border-color:var(--jungle-deep); box-shadow:0 0 0 2px rgba(47,107,47,.35); }
+      .lv-btn:active{ transform:translateY(2px); box-shadow:none; }
+      .task-steps{ margin:8px 0 2px; padding-left:20px; font-size:13px; line-height:1.9; }
+      .win-points{
+        background:#fff6d9; border:2px solid var(--gold); border-radius:12px; padding:9px 12px;
+        font-size:14px; line-height:1.65; margin-top:10px; color:var(--ink);
+      }
+      @media (prefers-color-scheme: dark){ .win-points{ background:#4a3a10; } }
+
+      /* ---------- overlay / modal ---------- */
+      .overlay{
+        position:fixed; inset:0; background:rgba(30,26,12,.55); backdrop-filter:blur(3px);
+        display:none; align-items:center; justify-content:center; z-index:300; padding:18px;
+      }
+      .overlay.show{ display:flex; }
+      .card{
+        background:var(--panel); border:3px solid var(--line); border-radius:22px; max-width:360px; width:100%;
+        padding:24px 22px 20px; text-align:center; box-shadow:0 18px 40px rgba(0,0,0,.3);
+        animation:cardIn .3s cubic-bezier(.2,1.4,.4,1);
+        max-height:calc(100dvh - 36px); overflow-y:auto; margin:auto;
+      }
+      @keyframes cardIn{ from{ transform:scale(.8); opacity:0;} to{ transform:scale(1); opacity:1;} }
+      .card .big-emoji{ font-size:56px; line-height:1.1; }
+      .card h2{ font-family:"ZCOOL KuaiLe","PingFang SC",sans-serif; margin:6px 0 4px; font-size:26px; letter-spacing:1px; }
+      .card p{ margin:6px 0; font-size:14px; line-height:1.6; color:var(--ink-soft); }
+      .card .rules{ text-align:left; font-size:13.5px; line-height:1.9; color:var(--ink); margin:10px auto 4px; max-width:290px; }
+      .btn{
+        display:block; width:100%; margin-top:10px; border:none; cursor:pointer; font-family:inherit;
+        background:var(--jungle-deep); color:#fff; font-size:16px; font-weight:800; letter-spacing:1px;
+        border-radius:999px; padding:12px; box-shadow:0 4px 0 #1e4d1e;
+      }
+      .btn:active{ transform:translateY(3px); box-shadow:0 1px 0 #1e4d1e; }
+      .btn.secondary{ background:var(--panel); color:var(--ink); border:2px solid var(--line); box-shadow:0 4px 0 rgba(0,0,0,.12); }
+      .btn:disabled{ opacity:.45; box-shadow:none; }
+      .confetti{ position:fixed; top:-4vh; z-index:400; pointer-events:none; animation:fall linear forwards; }
+      @keyframes fall{ to{ transform:translateY(112vh) rotate(560deg); } }
+      @media (prefers-reduced-motion: reduce){
+        .progress > i{ transition:none !important; }
+        .confetti{ animation:none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="alert-bar" role="note" id="alertBar">💾 血条已保存在本机浏览器：刷新、关页、返回都不会重置；清除浏览器数据或换设备才会重新开始</div>
+      <header class="top">
+        <svg class="mascot" viewBox="0 0 100 100" aria-hidden="true">
+          <ellipse cx="22" cy="24" rx="13" ry="16" fill="#ffb7cd" transform="rotate(-24 22 24)"/>
+          <ellipse cx="78" cy="24" rx="13" ry="16" fill="#ffb7cd" transform="rotate(24 78 24)"/>
+          <ellipse cx="22" cy="24" rx="7" ry="10" fill="#f2608f" transform="rotate(-24 22 24)"/>
+          <ellipse cx="78" cy="24" rx="7" ry="10" fill="#f2608f" transform="rotate(24 78 24)"/>
+          <circle cx="50" cy="56" r="38" fill="#ffd3e2"/>
+          <ellipse cx="50" cy="64" rx="17" ry="12.5" fill="#ffb7cd" stroke="#f2608f" stroke-width="2.5"/>
+          <circle cx="44" cy="64" r="3.2" fill="#c2436e"/>
+          <circle cx="56" cy="64" r="3.2" fill="#c2436e"/>
+          <circle cx="35" cy="46" r="4.4" fill="#3d2b23"/>
+          <circle cx="65" cy="46" r="4.4" fill="#3d2b23"/>
+          <circle cx="36.6" cy="44.4" r="1.5" fill="#fff"/>
+          <circle cx="66.6" cy="44.4" r="1.5" fill="#fff"/>
+          <circle cx="28" cy="58" r="5.5" fill="#ff9ebb" opacity=".7"/>
+          <circle cx="72" cy="58" r="5.5" fill="#ff9ebb" opacity=".7"/>
+        </svg>
+        <div class="title-wrap">
+          <h1 id="mainTitle">猪猪勇闯神庙</h1>
+          <p class="subtitle" id="mainSubtitle">神庙跑酷 · 15 关闯关 · 每关首通 +10,000 积分 · 100,000 分兑 5 USDT</p>
+        </div>
+        <div class="lang-toggle" role="group" aria-label="Language / 语言">
+          <button type="button" id="langZh">中文</button>
+          <button type="button" id="langEn">EN</button>
+        </div>
+      </header>
+
+      <div class="stats">
+        <span><span id="labelDist">距离</span> <b id="statDist">0 米</b></span>
+        <span>🪙 <b id="statCoins">0</b></span>
+        <div class="progress" aria-hidden="true"><i id="progFill"></i></div>
+        <span><span id="labelTarget">目标</span> <b id="statTarget">300 米</b></span>
+      </div>
+
+      <div class="lives-bar">
+        <span class="lb-label" id="labelLives">❤️ 血条</span>
+        <span class="lb-hearts" id="livesHearts"></span>
+        <span class="lb-num" id="livesNum">3 / 10</span>
+        <button class="lb-add" id="btnAddLives" type="button">＋ 加血</button>
+      </div>
+
+      <div class="points-bar">
+        <span class="lb-label" id="labelPoints">⭐ 积分</span>
+        <span class="pb-num" id="pointsNum">0</span>
+        <div class="progress" aria-hidden="true"><i id="pointsFill"></i></div>
+        <span class="pb-usdt" id="pointsUsdt">距兑换 5 USDT 还差 100,000 分</span>
+        <button class="lb-add gold" id="btnClaim" type="button">🏆 兑换 USDT</button>
+      </div>
+
+      <div class="level-map" id="levelMap" role="group" aria-label="关卡地图（共 15 关）"></div>
+
+      <div class="stage-wrap" id="stageWrap">
+        <canvas id="gameCanvas" aria-label="神庙跑酷赛道"></canvas>
+        <button class="pause-btn" id="btnPause" type="button" aria-label="暂停 / 继续">⏸</button>
+        <div class="toast" id="toast"></div>
+      </div>
+      <p class="ctrl-tip" id="ctrlTip">在赛道上<b>左右滑动</b>换道、<b>上滑</b>跳跃、<b>下滑</b>滑铲，也可以点下方按钮或用键盘方向键。</p>
+
+      <div class="controls">
+        <button class="ctl" id="ctlLeft" type="button">
+          <span class="c-ico">⬅️</span><span class="c-name" id="ctlLeftName">左移</span>
+        </button>
+        <button class="ctl" id="ctlJump" type="button">
+          <span class="c-ico">⬆️</span><span class="c-name" id="ctlJumpName">跳跃</span>
+        </button>
+        <button class="ctl" id="ctlSlide" type="button">
+          <span class="c-ico">⬇️</span><span class="c-name" id="ctlSlideName">滑铲</span>
+        </button>
+        <button class="ctl" id="ctlRight" type="button">
+          <span class="c-ico">➡️</span><span class="c-name" id="ctlRightName">右移</span>
+        </button>
+      </div>
+
+      <p class="howto" id="howtoText"></p>
+    </div>
+
+    <div class="overlay" id="overlay">
+      <div class="card" id="overlayCard"></div>
+    </div>
+
+    <script>
+    (function(){
+      "use strict";
+      /* ---------------- i18n: auto-detect + manual switch ---------------- */
+      var LANG_KEY = "zlgz_lang";
+      function detectLang(){
+        try{ var s = localStorage.getItem(LANG_KEY); if(s==="en"||s==="zh") return s; }catch(e){}
+        var nav = "";
+        try{ nav = (navigator.language || (navigator.languages && navigator.languages[0]) || "zh").toLowerCase(); }catch(e){}
+        if(nav.indexOf("en")===0) return "en";
+        if(nav.indexOf("zh")===0) return "zh";
+        /* non-zh/en systems default to English for overseas players */
+        return nav ? "en" : "zh";
+      }
+      var LANG = detectLang();
+      var STR = {
+        zh: {
+          docTitle:"猪猪勇闯神庙 · 神庙跑酷小游戏",
+          alert:"💾 血条已保存在本机浏览器：刷新、关页、返回都不会重置；清除浏览器数据或换设备才会重新开始",
+          title:"猪猪勇闯神庙", subtitle:"神庙跑酷 · 15 关闯关 · 每关首通 +10,000 积分 · 100,000 分兑 5 USDT",
+          dist:"距离", target:"目标", livesLabel:"❤️ 血条", addLives:"＋ 加血", pointsLabel:"⭐ 积分", claimBtn:"🏆 兑换 USDT",
+          levelMapAria:"关卡地图（共 15 关）", stageAria:"神庙跑酷赛道",
+          ctlLeft:"左移", ctlJump:"跳跃", ctlSlide:"滑铲", ctlRight:"右移",
+          ctrlTip:'在赛道上<b>左右滑动</b>换道、<b>上滑</b>跳跃、<b>下滑</b>滑铲，也可以点下方按钮或用键盘方向键。🗿 石像要换道躲开，🪵 倒木要跳过去，石梁要滑铲钻过！',
+          howto:'<b>玩法（神庙跑酷）：</b>小猪在神庙石道上自动向前跑，你只管操控方向：<b>左右滑动（或点按钮 / 按方向键）</b>在三条车道之间换道，<b>上滑跳跃</b>跳过倒下的木桩，<b>下滑滑铲</b>钻过低矮的石梁，路中间的<b>石像要换道躲开</b>——撞上任何障碍这一局就结束。沿途的<b>金币</b>顺路吃掉，本局金币数会记在上方。跑满本关的<b>目标距离</b>就过关，越往后的关卡跑得越远、速度越快、障碍越密。<br/><b>积分奖励：</b>一共 <b>15 关</b>，每关<b>第一次通关 +10,000 积分</b>（重复通关同一关不重复计分），打满 15 关共 150,000 分。<b>100,000 积分可兑换 5 USDT</b>：凭游戏 ID + 币安 UID 找运营方领取，运营方核对你是用邀请码 <b>VIP700</b> 注册币安并完成实名认证（建议再完成一笔交易）后发放。<br/><b>血条：</b>每人免费 3 格，每开一局扣 1 格、扣完锁定，血条保存在本机不会因刷新清零；回血办法：邀请好友过关自动加血，或用运营方签发的一次性兑换码，点上面「＋加血」查看办法。',
+          copied:"已复制", copyFail:"复制失败，请长按文字手动复制",
+          meter:function(n){ return n + " 米"; },
+          pointsToGo:function(n){ return "距兑换 5 USDT 还差 "+n+" 分"; },
+          pointsClaimable:function(u){ return "可兑换 "+u+" USDT，找运营方领取"; },
+          levelClearedTag:"✓ +1万分",
+          levelMeta:function(target){ return "跑 " + target + " 米"; },
+          levelAria:function(n){ return "第 "+n+" 关"; },
+          pointsSummary:function(pts,cleared,total,tail){ return "⭐ 当前积分 <b>"+pts+"</b> · 已通关 <b>"+cleared+" / "+total+"</b> 关<br/>"+tail; },
+          pointsTailClaimable:function(u){ return "已可兑换 <b>"+u+" USDT</b>，点下方「领取 USDT」找运营方核实领取！"; },
+          pointsTailToGo:function(need,lvls){ return "距下一次兑换还差 <b>"+need+" 分</b>（再过 "+lvls+" 关）"; },
+          startToast:function(name,target,lives){ return name+"：跑满 "+target+" 米过关！血条剩 "+lives+" 格"; },
+          pausedToast:"已暂停，点 ⏸ 或按空格继续",
+          resumedToast:"继续跑！",
+          creditAdded:function(n){ return "🎉 好友完成 1 关，自动 +"+n+" 格血！"; },
+          creditFull:"🎉 好友完成 1 关啦！不过血条已满 10 格，这次没加上",
+          gateStart:function(n,lives){ return "开始闯关 · 第 "+n+" 关（剩 "+lives+" 格血）"; },
+          gateStartLocked:"血条已空，先加血再开局",
+          winFirst:function(pts){ return "🎉 本关首通，<b>+"+pts+" 积分</b>已到账！<br/>"; },
+          winRepeat:"本关之前已经计过分了，重复通关不重复加分。<br/>",
+          winTitleFinal:"第 15 关通关！神庙猪王加冕",
+          winTitle:function(n){ return "第 "+n+" 关过啦！"; },
+          winDescAll:"15 关全部打通，150,000 积分拉满，你就是神庙猪王本王！",
+          winDescFinal:"最后一关都跑完了！回头把没通的关补上，积分还能继续涨。",
+          winDescNormal:"漂亮！跑到了神庙终点。下一关更远更快，障碍也更密，继续冲。",
+          winClaim:function(u){ return "🏆 领取 "+u+" USDT →"; },
+          winNext:function(n){ return "挑战第 "+n+" 关 →"; },
+          winReplay:function(n){ return "再跑一遍第 "+n+" 关"; },
+          winBack1:"回第 1 关遛遛",
+          deathTitle:"哎呀，撞上啦！",
+          deathDesc:function(dist,target,coins){ return "这局跑了 <b>"+dist+" 米</b>（目标 "+target+" 米），吃到 🪙 "+coins+" 枚金币。差一点就到了，调整节奏再试一次！"; },
+          deathRetry:function(n){ return "再跑一次第 "+n+" 关（扣 1 格血）"; },
+          deathHome:"回大厅看看"
+        },
+        en: {
+          docTitle:"Piggy Temple Run · Temple Runner Game",
+          alert:"💾 Your lives are saved in this browser: refreshing, closing or going back won't reset them; clearing browser data or switching devices starts over",
+          title:"Piggy Temple Run", subtitle:"Temple Runner · 15 Levels · +10,000 pts first clear · 100,000 pts = 5 USDT",
+          dist:"Distance", target:"Goal", livesLabel:"❤️ Lives", addLives:"+ Lives", pointsLabel:"⭐ Points", claimBtn:"🏆 Claim USDT",
+          levelMapAria:"Level map (15 levels)", stageAria:"Temple run track",
+          ctlLeft:"Left", ctlJump:"Jump", ctlSlide:"Slide", ctlRight:"Right",
+          ctrlTip:'<b>Swipe left/right</b> to switch lanes, <b>swipe up</b> to jump, <b>swipe down</b> to slide — or use the buttons below / arrow keys. Dodge the 🗿 statues by changing lanes, jump the 🪵 logs, slide under the stone beams!',
+          howto:'<b>How to play (Temple Runner):</b> The pig runs forward on the temple track automatically — you steer: <b>swipe left/right (or tap the buttons / arrow keys)</b> to switch between the three lanes, <b>swipe up to jump</b> over fallen logs, <b>swipe down to slide</b> under low stone beams, and <b>change lanes to dodge the statues</b> — hitting any obstacle ends the run. Grab the <b>coins</b> along the way; your coin count for the run shows above. Reach the level\'s <b>target distance</b> to clear it. Later levels run farther and faster, with denser obstacles.<br/><b>Points:</b> <b>15 levels</b> in total. The <b>first clear of each level gives +10,000 points</b> (replays do not score again), for up to 150,000 points. <b>100,000 points = 5 USDT</b>: claim from the operator with your Game ID + Binance UID, after the operator verifies you registered on Binance with referral code <b>VIP700</b> and completed identity verification (one trade is recommended).<br/><b>Lives:</b> Everyone starts with 3 free lives. Each game costs 1 life; at 0 you are locked. Lives are saved in this browser and do not reset on refresh. To refill: invite friends who clear a level for auto +1 life, or use a one-time redeem code from the operator — tap “+ Lives” above for details.',
+          copied:"Copied", copyFail:"Copy failed — long-press the text to copy manually",
+          meter:function(n){ return n + " m"; },
+          pointsToGo:function(n){ return n+" pts to go for 5 USDT"; },
+          pointsClaimable:function(u){ return u+" USDT ready — claim from the operator"; },
+          levelClearedTag:"✓ +10K pts",
+          levelMeta:function(target){ return "Run " + target + " m"; },
+          levelAria:function(n){ return "Level "+n; },
+          pointsSummary:function(pts,cleared,total,tail){ return "⭐ Points <b>"+pts+"</b> · Cleared <b>"+cleared+" / "+total+"</b> levels<br/>"+tail; },
+          pointsTailClaimable:function(u){ return "<b>"+u+" USDT</b> ready to claim — tap “Claim USDT” below and contact the operator to verify!"; },
+          pointsTailToGo:function(need,lvls){ return "<b>"+need+" pts</b> to the next claim ("+lvls+" more level"+(lvls>1?"s":"")+")"; },
+          startToast:function(name,target,lives){ return name+": run "+target+" m to clear! "+lives+" lives left"; },
+          pausedToast:"Paused — tap ⏸ or press Space to resume",
+          resumedToast:"Keep running!",
+          creditAdded:function(n){ return "🎉 A friend cleared a level! +"+n+" life auto-added!"; },
+          creditFull:"🎉 A friend cleared a level! But lives are already full (10), so nothing was added",
+          gateStart:function(n,lives){ return "Start · Level "+n+" ("+lives+" lives left)"; },
+          gateStartLocked:"Out of lives — refill first to play",
+          winFirst:function(pts){ return "🎉 First clear! <b>+"+pts+" points</b> added!<br/>"; },
+          winRepeat:"This level already scored before — replays don't add points again.<br/>",
+          winTitleFinal:"Level 15 cleared! Temple Pig King crowned 👑",
+          winTitle:function(n){ return "Level "+n+" cleared!"; },
+          winDescAll:"All 15 levels cleared and 150,000 points maxed — you are the Temple Pig King!",
+          winDescFinal:"You beat the final level! Go back and clear any missed levels to earn more points.",
+          winDescNormal:"Nice run — you reached the temple finish! The next level is farther, faster and denser — keep going!",
+          winClaim:function(u){ return "🏆 Claim "+u+" USDT →"; },
+          winNext:function(n){ return "Challenge Level "+n+" →"; },
+          winReplay:function(n){ return "Run Level "+n+" again"; },
+          winBack1:"Back to Level 1",
+          deathTitle:"Ouch — you crashed!",
+          deathDesc:function(dist,target,coins){ return "You ran <b>"+dist+" m</b> this time (goal "+target+" m) and grabbed 🪙 "+coins+" coins. So close — find your rhythm and try again!"; },
+          deathRetry:function(n){ return "Run Level "+n+" again (costs 1 life)"; },
+          deathHome:"Back to the hall"
+        }
+      };
+      function L(){ return STR[LANG] || STR.zh; }
+      function isEn(){ return LANG==="en"; }
+
+      /* ---------------- levels: temple run, target distance grows ---------------- */
+      var LEVELS = {
+        1:  { name:"第 1 关 · 神庙大门", nameEn:"Level 1 · Temple Gate",   target:300,  speed:11.0, gapMin:30, gapMax:42 },
+        2:  { name:"第 2 关 · 青苔石道", nameEn:"Level 2 · Mossy Path",    target:400,  speed:11.6, gapMin:28, gapMax:40 },
+        3:  { name:"第 3 关 · 藤蔓回廊", nameEn:"Level 3 · Vine Corridor", target:500,  speed:12.2, gapMin:27, gapMax:38 },
+        4:  { name:"第 4 关 · 石像阵",   nameEn:"Level 4 · Statue Row",    target:650,  speed:12.8, gapMin:26, gapMax:37 },
+        5:  { name:"第 5 关 · 倒木坡道", nameEn:"Level 5 · Fallen Logs",   target:800,  speed:13.4, gapMin:25, gapMax:36 },
+        6:  { name:"第 6 关 · 瀑布栈道", nameEn:"Level 6 · Falls Walkway", target:950,  speed:14.0, gapMin:24, gapMax:34 },
+        7:  { name:"第 7 关 · 猪突峡谷", nameEn:"Level 7 · Piggy Canyon",  target:1100, speed:14.6, gapMin:23, gapMax:33 },
+        8:  { name:"第 8 关 · 古墓甬道", nameEn:"Level 8 · Tomb Passage",  target:1250, speed:15.2, gapMin:22, gapMax:32 },
+        9:  { name:"第 9 关 · 夜探神庙", nameEn:"Level 9 · Night Temple",  target:1400, speed:15.8, gapMin:21, gapMax:31 },
+        10: { name:"第 10 关 · 黄金大厅", nameEn:"Level 10 · Golden Hall", target:1600, speed:16.4, gapMin:20, gapMax:30 },
+        11: { name:"第 11 关 · 熔岩裂谷", nameEn:"Level 11 · Lava Rift",   target:1750, speed:17.0, gapMin:19, gapMax:29 },
+        12: { name:"第 12 关 · 猪王迷宫", nameEn:"Level 12 · Pig Maze",    target:1900, speed:17.6, gapMin:19, gapMax:28 },
+        13: { name:"第 13 关 · 风暴祭坛", nameEn:"Level 13 · Storm Altar", target:2050, speed:18.2, gapMin:18, gapMax:27 },
+        14: { name:"第 14 关 · 猪王试炼", nameEn:"Level 14 · Pig King Trial", target:2200, speed:18.8, gapMin:17, gapMax:26 },
+        15: { name:"第 15 关 · 神庙之心", nameEn:"Level 15 · Temple Heart", target:2400, speed:19.4, gapMin:16, gapMax:25 }
+      };
+      function levelName(lv){ var c=LEVELS[lv]; return isEn() ? c.nameEn : c.name; }
+      function levelTarget(lv){ return LEVELS[lv].target; }
+      var TOTAL_LEVELS = 15, POINTS_PER_LEVEL = 10000, POINTS_PER_USDT_BLOCK = 100000, USDT_PER_BLOCK = 5;
+
+      /* ---------------- audio ---------------- */
+      var actx = null;
+      function beep(freq, dur, type, vol, delay){
+        try{
+          if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)();
+          if(actx.state === "suspended") actx.resume();
+          var t = actx.currentTime + (delay||0);
+          var o = actx.createOscillator(), g = actx.createGain();
+          o.type = type||"sine"; o.frequency.setValueAtTime(freq, t);
+          g.gain.setValueAtTime(vol||0.12, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+          o.connect(g); g.connect(actx.destination);
+          o.start(t); o.stop(t + dur);
+        }catch(e){}
+      }
+      function sndClick(){ beep(620, .07, "triangle", .10); }
+      function sndBad(){ beep(196, .16, "sawtooth", .07); beep(140, .2, "sawtooth", .06, .06); }
+      function sndCoin(){ beep(1180, .07, "square", .06); beep(1560, .1, "square", .06, .05); }
+      function sndJump(){ beep(420, .12, "sine", .08); beep(640, .1, "sine", .07, .06); }
+      function sndWin(){ [523,659,784,1046,1318].forEach(function(f,i){ beep(f,.22,"triangle",.13,i*.11); }); }
+      function buzz(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
+
+      /* ---------------- lives & referral (persisted in this browser) ---------------- */
+      var MAX_LIVES = 10, START_LIVES = 3;
+      var BN_URL = "https://www.binance.com/join?ref=VIP700";
+      var SAVE_KEY = "zlgz_save_v2";
+      /* Operator-issued one-time redeem codes are verified by SHA-256 hash
+         only: the plaintext codes never ship in this page, so reading the
+         source reveals nothing redeemable. usedRedeemCodes stores hashes of
+         spent codes; each code works once per browser. */
+      var REDEEM_CODE_HASHES = ["da552a029e48d76289f21dec4c5a7235a75368d16a7bec820d8fb62df17fdc7a","2710fa2c6e352e6c202b4f27c871b1ad663e3dee0dc15ba0050553070da6c916","3ef3747f9719e1790a6477b76174a4d37046dd06b4af47db662dd8e7cc539153","1b4d2695b44f3153b598729245cfcd207136f24d159335be60e9b878c97daa06","96c92fd55d4581625795bba9c981fc747c2124fa64b6f16f55f97cdfed1e5559","86642daa62a40a3754d32d4866bafeec72bf032020119df3cdddbe633a39c378","5be824d6cf9b2dd39b15cbc8ec1c59d4dd44c8760ff982920103dc868dd3813c","50855f76322db7646f3e0cb902b421f925a766811db5dbaaed074ed164e3c3ef","e29a083968966346f9151f9a28ff0f1dad78bcf5661b056031ed2e983936f476","91332ae6dccecb03c8959d1f9605bf732fc5b60bb8c2cc2a643297c4d0964a28","0a69ec10c5b12397bf345d3aa946b9c2a088d72aebcf324756459027ff1e0322","e9a0bc91e1a05ee79f02e9412e4d9fa1bb543f6d0fafbedd3434772bed581789","d3cc0ddc64749b450255c6ae8f848789c4abea8adbaf8794634ca459e2ae2787","605cf98cd4ce58e5c62513d073c90d84314e01fa1a47b6e82d08a20290f5c460","d4673cc69be2f2e59beaf7c7d3c52ab346a9e6b4e982400fe408b1db0d18cbe1","ffe27a4bb3f8a93ca5c893fcdc954d10585614ffa5b216c5b00cec288cbf5bca","784fa9040f4471cb4fad34919e7090e035dd1d527d947b6d01914883642e33d3","95643af1fae79484d9ccd604c2ab70210fbde61576dc144449368f274b971942","c073fdef2eb78fb7b21a39a3905e6d03ec8df7ef089824f5cf36e35bacf326e3","4eb09b0493a97ce96582e331c4d12f8ec2c754fe4ff03b76ad0b7f89a088d37d","258273a6b914a0a3483860d580bfa238b4df7eb376be1fb55bf131eeb684d6c2","aa35e2253e5b17af928315e130aa664b8acd8503dcb42d89095187599eabb145","a699b0380b9f644655c70fbc25df19510c954b8cdc6cd9926495cc72cc94bae4","a8f7e76362dbf1e86ce5d12c2ce65b417e563a8e84ebe0b363ad89cbe188774f","a59fb21046195deb05dd00d55d9a57da0d942a9434404b322ca65eb6618b8c35","59eef4a95d36a8e65f6bb47aa470ec6424f54f36d01cf18bc3945ebffbc9a437","0062791632b611c3ca22560f241d1acfaa7341c075cb21fc6435467bcf154598","65b5281e9e7dd9520413e6bfb2ebcd3046aea7b5b113d5437d4d73734f35a259","02f00bc737893e5f45e97727d38ce3315bab331333253cdb586b30cf349b477e","f5d708218e86e7e78949dc42956e421198684dd5046dfc30b971eb2d35401158"];
+      function sha256Hex(text){
+        if (!(window.crypto && crypto.subtle && crypto.subtle.digest)) return Promise.reject(new Error("no subtle crypto"));
+        return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)).then(function(buf){
+          var bytes = new Uint8Array(buf), hex = "";
+          for (var i=0;i<bytes.length;i++) hex += ("0" + bytes[i].toString(16)).slice(-2);
+          return hex;
+        });
+      }
+      var gateCanClose = false;
+      function genCode(prefix){
+        var chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789", s = "";
+        for (var i=0;i<6;i++) s += chars.charAt(Math.floor(Math.random()*chars.length));
+        return prefix + s;
+      }
+      var lives = START_LIVES;
+      var usedRedeemCodes = [];
+      var myInviteCode = genCode("PIG-");
+      var playerId = genCode("PIG-ID-");
+      var clearedLevels = [];   /* levels whose first-clear points are banked */
+      var claimedBlocks = 0;    /* 100,000-point blocks already paid out (marked locally after receipt) */
+      function pointsTotal(){ return clearedLevels.length * POINTS_PER_LEVEL; }
+      function claimableBlocks(){ return Math.max(0, Math.floor(pointsTotal() / POINTS_PER_USDT_BLOCK) - claimedBlocks); }
+      function nextLevel(){
+        for (var i=1;i<=TOTAL_LEVELS;i++) if (clearedLevels.indexOf(i) < 0) return i;
+        return TOTAL_LEVELS;
+      }
+      function fmtNum(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+      function saveState(){
+        try{
+          localStorage.setItem(SAVE_KEY, JSON.stringify({
+            lives: lives,
+            usedRedeemCodes: usedRedeemCodes,
+            myInviteCode: myInviteCode,
+            playerId: playerId,
+            clearedLevels: clearedLevels,
+            claimedBlocks: claimedBlocks
+          }));
+        }catch(e){}
+      }
+      function loadState(){
+        try{
+          var raw = localStorage.getItem(SAVE_KEY);
+          if (!raw) { saveState(); return; }
+          var d = JSON.parse(raw);
+          if (typeof d.lives === "number" && isFinite(d.lives)) lives = Math.max(0, Math.min(MAX_LIVES, Math.floor(d.lives)));
+          if (Array.isArray(d.usedRedeemCodes)) usedRedeemCodes = d.usedRedeemCodes.filter(function(c){ return typeof c === "string"; });
+          if (typeof d.myInviteCode === "string" && d.myInviteCode) myInviteCode = d.myInviteCode;
+          if (typeof d.playerId === "string" && d.playerId) playerId = d.playerId;
+          if (Array.isArray(d.clearedLevels)) clearedLevels = d.clearedLevels.filter(function(n){ return typeof n === "number" && n>=1 && n<=TOTAL_LEVELS; }).filter(function(n,i,a){ return a.indexOf(n)===i; });
+          if (typeof d.claimedBlocks === "number" && isFinite(d.claimedBlocks)) claimedBlocks = Math.max(0, Math.min(Math.floor(pointsTotal()/POINTS_PER_USDT_BLOCK), Math.floor(d.claimedBlocks)));
+        }catch(e){}
+      }
+      loadState();
+
+      /* ---------------- invite auto-reward: direct Supabase REST ----------------
+         The page talks straight to public.pig_invites via Supabase REST
+         with the public anon key (a client key by design, not a DB
+         password). Flow: open with ?ref=PIG-XXXXXX -> pending row;
+         clear any level -> row completed; on the inviter's next open,
+         each completed uncredited row is redeemed server-side (credited)
+         for +1 life, capped at 10. Any backend failure leaves the game
+         untouched and the invite panel falls back to the manual text. */
+      var SB_REST = "https://gioavbsqratoneadspyj.supabase.co/rest/v1";
+      var SB_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdpb2F2YnNxcmF0b25lYWRzcHlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMTIyOTMsImV4cCI6MjEwOTc4ODI5M30.HwYIZGGULemgc5wW-y0UYw3UdmatYVp5JEimMpcZKw0";
+      var PENDING_REF_KEY = "pig_pending_ref";
+      var REF_RE = /^PIG-[A-Z0-9]{6}$/;
+      var inviteBackendOk = null; /* null unknown · true up · false down */
+      function sbRequest(method, path, body, prefer){
+        if (typeof fetch !== "function") return Promise.reject(new Error("no fetch"));
+        var headers = {
+          "apikey": SB_ANON_KEY,
+          "Authorization": "Bearer " + SB_ANON_KEY,
+          "Content-Type": "application/json"
+        };
+        if (prefer) headers["Prefer"] = prefer;
+        var opts = { method: method, headers: headers };
+        if (body !== undefined && body !== null) opts.body = JSON.stringify(body);
+        var ctrl = null, timer = null;
+        if (typeof AbortController === "function"){
+          ctrl = new AbortController();
+          opts.signal = ctrl.signal;
+          timer = setTimeout(function(){ try{ ctrl.abort(); }catch(e){} }, 8000);
+        }
+        return fetch(SB_REST + path, opts).then(function(res){
+          if (timer) clearTimeout(timer);
+          return res.text().then(function(txt){
+            var data = null;
+            if (txt){ try{ data = JSON.parse(txt); }catch(e){} }
+            return { ok: res.ok, status: res.status, data: data };
+          });
+        }, function(err){
+          if (timer) clearTimeout(timer);
+          throw err;
+        });
+      }
+      function setBackendOk(ok){
+        if (inviteBackendOk === ok) return;
+        inviteBackendOk = ok;
+        refreshInvitePanel();
+      }
+      function refreshInvitePanel(){
+        renderInvitePanel();
+        if (inviteBackendOk === false){
+          var rule = document.getElementById("gateInviteRule");
+          if (rule) rule.innerHTML = isEn()
+            ? '👥 <b>Invite friends</b>: share your invite code with friends. Their play cannot be auto-credited to you on this page, so the operator verifies manually and sends you a one-time redeem code to refill lives'
+            : '👥 <b>邀请好友</b>：把你的邀请码发给好友来玩；好友的游玩记录在本页无法自动记到你名下，邀请奖励由运营方人工核对后发一次性兑换码给你，凭码回血';
+        }
+      }
+      function invitePanelHTML(){
+        if (isEn()){
+          if (inviteBackendOk === false){
+            return '<div class="panel-title">👥 Invite Friends (reward issued manually)</div>' +
+              '<p>Your invite code: <span class="code-chip">' + myInviteCode + '</span></p>' +
+              '<button class="btn sm" id="gCopyInvite">📋 Copy invite message for friends</button>' +
+              '<p class="panel-note">Honest note: if a friend enters your code on their own phone, this page cannot add lives across devices, so there is <b>no “enter code to get lives”</b> here — entering a code gives nobody lives. To claim the reward: after your friend plays, send your invite code + your friend\'s Game ID to the operator; after verification the operator sends you a one-time redeem code to refill lives in the Binance panel below.</p>' +
+              '<p class="msg" id="inviteMsg"></p>';
+          }
+          return '<div class="panel-title">👥 Invite Friends (auto +1 life on clear)</div>' +
+            '<p>Your invite code: <span class="code-chip">' + myInviteCode + '</span></p>' +
+            '<p>How to invite: send the game link to a friend and ask them to add <span class="code-chip">?ref=' + myInviteCode + '</span> at the end of the link before opening it. Easiest: tap the button below to copy a ready-made message — the parameter is already included.</p>' +
+            '<button class="btn sm" id="gCopyInvite">📋 Copy invite message for friends</button>' +
+            '<p class="panel-note">Auto rule: when a friend opens the link with <b>?ref=' + myInviteCode + '</b> and <b>clears any 1 level</b>, the invite counts — next time you open the game you <b>automatically get +1 life</b> (max 10), no operator and no redeem code needed. Anti-abuse: one device counts once, self-invites do not count, and merely opening the link is not enough — a level must be cleared.</p>' +
+            '<p class="msg" id="inviteMsg"></p>';
+        }
+        if (inviteBackendOk === false){
+          return '<div class="panel-title">👥 邀请好友（奖励人工核发）</div>' +
+            '<p>你的邀请码：<span class="code-chip">' + myInviteCode + '</span></p>' +
+            '<button class="btn sm" id="gCopyInvite">📋 复制邀请文案发给好友</button>' +
+            '<p class="panel-note">诚实说明：好友在自己手机上填你的邀请码，本页没法跨设备把血加到你这边，所以这里<b>不提供「填码领血」</b>，填了也不会给任何人加血。邀请奖励这样领：好友来玩后，把你的邀请码和好友的游戏 ID 一起发给运营方，运营方核对后会发你一个一次性兑换码，你在下方币安面板里输入兑换码回血。</p>' +
+            '<p class="msg" id="inviteMsg"></p>';
+        }
+        return '<div class="panel-title">👥 邀请好友（过关自动加血）</div>' +
+          '<p>你的邀请码：<span class="code-chip">' + myInviteCode + '</span></p>' +
+          '<p>邀请办法：把游戏链接发给好友，并让好友在链接地址最后加上 <span class="code-chip">?ref=' + myInviteCode + '</span> 再打开。点下方按钮复制现成文案发给好友最省事，参数已经带好了。</p>' +
+          '<button class="btn sm" id="gCopyInvite">📋 复制邀请文案发给好友</button>' +
+          '<p class="panel-note">自动规则：好友点开带 <b>?ref=' + myInviteCode + '</b> 的链接进来玩，<b>过完任意 1 关</b>就算邀请成功——你下次打开游戏会<b>自动 +1 格血</b>（血条上限 10 格），不用找运营方、不用兑换码。防刷：同一台设备只算一次，自己邀请自己不算，光打开不算、必须过关才算。</p>' +
+          '<p class="msg" id="inviteMsg"></p>';
+      }
+      function renderInvitePanel(){
+        var body = document.getElementById("invitePanelBody");
+        if (!body) return;
+        body.innerHTML = invitePanelHTML();
+        var btn = document.getElementById("gCopyInvite");
+        if (!btn) return;
+        btn.addEventListener("click", function(){
+          if (isEn()){
+            if (inviteBackendOk === false){
+              copyText("🐷 I'm playing Piggy Temple Run — dodge statues, jump logs, slide under beams and run the temple track, super addictive! Come play with me — my invite code is " + myInviteCode + ". After you play, send me your Game ID so I can ask the operator to verify my invite reward. Thanks!");
+              setMsg("inviteMsg", "Invite message copied — send it to your friend! The operator will verify and send you a redeem code.", true);
+            } else {
+              copyText("🐷 I'm playing Piggy Temple Run — dodge statues, jump logs, slide under beams and run the temple track, super addictive! Play here: open the game link with ?ref=" + myInviteCode + " added at the end (so it counts as my invite). Clear 1 level and I'll auto get +1 life next time I open the game. Thanks!");
+              setMsg("inviteMsg", "Invite message copied — send it to your friend! When they clear 1 level, you'll auto get +1 life next time you open the game.", true);
+            }
+            return;
+          }
+          if (inviteBackendOk === false){
+            copyText("🐷 我在玩《猪猪勇闯神庙》跑酷，躲石像、跳倒木、钻石梁，超上头！来陪我玩两局吧，我的邀请码是 " + myInviteCode + "——玩过之后把你的游戏 ID 发我，我拿去找运营方核对邀请奖励，谢谢啦！");
+            setMsg("inviteMsg", "邀请文案已复制，去发给好友吧！奖励由运营方核对后发兑换码给你。", true);
+          } else {
+            copyText("🐷 我在玩《猪猪勇闯神庙》跑酷，躲石像、跳倒木、钻石梁，超上头！来陪我玩：打开游戏链接时，在地址最后加上 ?ref=" + myInviteCode + " 再打开（这样就算我邀请的），你过完 1 关，我下次打开游戏就自动 +1 格血，谢谢啦！");
+            setMsg("inviteMsg", "邀请文案已复制，去发给好友吧！好友过完 1 关，你下次打开游戏自动 +1 格血。", true);
+          }
+        });
+      }
+      function clearPendingRef(){
+        try{ localStorage.removeItem(PENDING_REF_KEY); }catch(e){}
+      }
+      function recordInviteVisit(){
+        var ref = null;
+        try{ ref = new URLSearchParams(window.location.search).get("ref"); }catch(e){}
+        if (!ref || !REF_RE.test(ref) || ref === myInviteCode) return; /* bad format or self-invite: ignore */
+        try{ localStorage.setItem(PENDING_REF_KEY, ref); }catch(e){}
+        sbRequest("POST", "/pig_invites", {
+          inviter_code: ref,
+          invitee_device_id: playerId,
+          invitee_code: myInviteCode
+        }).then(function(r){
+          if (r.ok || r.status === 409) setBackendOk(true); /* 409 = unique conflict, already recorded */
+          else setBackendOk(false);
+        }).catch(function(){ setBackendOk(false); });
+      }
+      function completePendingInvite(level){
+        var ref = null;
+        try{ ref = localStorage.getItem(PENDING_REF_KEY); }catch(e){}
+        if (!ref || !REF_RE.test(ref)) return;
+        if (ref === myInviteCode){ clearPendingRef(); return; }
+        var dev = encodeURIComponent(playerId);
+        sbRequest("GET", "/pig_invites?invitee_device_id=eq." + dev + "&completed_at=not.is.null&select=inviter_code").then(function(r){
+          if (!r.ok){ setBackendOk(false); return; } /* keep pending_ref, retry on next clear */
+          setBackendOk(true);
+          if (Array.isArray(r.data) && r.data.length > 0){ clearPendingRef(); return; } /* this device already counted once */
+          var nowIso = new Date().toISOString();
+          var cond = "/pig_invites?inviter_code=eq." + encodeURIComponent(ref) + "&invitee_device_id=eq." + dev;
+          sbRequest("PATCH", cond, { level_completed: level, completed_at: nowIso }, "return=representation").then(function(pr){
+            if (pr.ok && Array.isArray(pr.data) && pr.data.length > 0){ clearPendingRef(); return; }
+            if (!pr.ok){ setBackendOk(false); return; }
+            /* no pending row (visit was never recorded): insert a completed one as fallback */
+            sbRequest("POST", "/pig_invites", {
+              inviter_code: ref,
+              invitee_device_id: playerId,
+              invitee_code: myInviteCode,
+              level_completed: level,
+              completed_at: nowIso
+            }).then(function(postR){
+              if (postR.ok || postR.status === 409) clearPendingRef();
+              else setBackendOk(false);
+            }).catch(function(){ setBackendOk(false); });
+          }).catch(function(){ setBackendOk(false); });
+        }).catch(function(){ setBackendOk(false); });
+      }
+      function notifyCredit(creditedCount, addedCount){
+        var msg = addedCount > 0 ? L().creditAdded(addedCount) : L().creditFull;
+        toast(msg);
+        var el = document.getElementById("gateCreditNote");
+        if (el){ el.textContent = msg; el.style.display = "block"; }
+      }
+      function claimInviteCredits(){
+        var cond = "inviter_code=eq." + encodeURIComponent(myInviteCode) + "&credited=eq.false&completed_at=not.is.null";
+        sbRequest("GET", "/pig_invites?" + cond + "&select=id").then(function(r){
+          if (!r.ok){ setBackendOk(false); return; }
+          setBackendOk(true);
+          if (!Array.isArray(r.data) || r.data.length === 0) return;
+          var nowIso = new Date().toISOString();
+          sbRequest("PATCH", "/pig_invites?" + cond, { credited: true, credited_at: nowIso }, "return=representation").then(function(pr){
+            if (!pr.ok || !Array.isArray(pr.data) || pr.data.length === 0) return;
+            var before = lives;
+            lives = Math.min(MAX_LIVES, lives + pr.data.length);
+            saveState();
+            updateLivesUI();
+            notifyCredit(pr.data.length, lives - before);
+          }).catch(function(){});
+        }).catch(function(){ setBackendOk(false); });
+      }
+
+      function heartsStr(){
+        var s = "";
+        for (var i=0;i<MAX_LIVES;i++) s += (i<lives ? "❤️" : "🤍");
+        return s;
+      }
+      function updateLivesUI(){
+        var h = document.getElementById("livesHearts"); if (h) h.textContent = heartsStr();
+        var n = document.getElementById("livesNum"); if (n) n.textContent = lives + " / " + MAX_LIVES;
+        var gh = document.getElementById("gateHearts"); if (gh) gh.textContent = heartsStr();
+        var gn = document.getElementById("gateLivesNum"); if (gn) gn.textContent = lives + " / " + MAX_LIVES;
+        var sn = document.getElementById("gStartNext");
+        if (sn){ sn.disabled = lives<=0; sn.textContent = lives>0 ? L().gateStart(nextLevel(), lives) : L().gateStartLocked; }
+        var lock = document.getElementById("gateLockNote"); if (lock) lock.style.display = lives<=0 ? "block" : "none";
+        var gp = document.getElementById("gatePoints");
+        if (gp) gp.innerHTML = pointsSummaryHTML();
+      }
+      function pointsSummaryHTML(){
+        var pts = pointsTotal(), cb = claimableBlocks();
+        var into = pts % POINTS_PER_USDT_BLOCK;
+        var tail = cb > 0
+          ? L().pointsTailClaimable(cb * USDT_PER_BLOCK)
+          : L().pointsTailToGo(fmtNum(POINTS_PER_USDT_BLOCK - into), Math.ceil((POINTS_PER_USDT_BLOCK - into)/POINTS_PER_LEVEL));
+        return L().pointsSummary(fmtNum(pts), clearedLevels.length, TOTAL_LEVELS, tail);
+      }
+      function updatePointsUI(){
+        var pts = pointsTotal(), cb = claimableBlocks();
+        var n = document.getElementById("pointsNum"); if (n) n.textContent = fmtNum(pts);
+        var into = pts % POINTS_PER_USDT_BLOCK;
+        var f = document.getElementById("pointsFill");
+        if (f) f.style.width = (cb > 0 ? 100 : Math.round(into / POINTS_PER_USDT_BLOCK * 100)) + "%";
+        var u = document.getElementById("pointsUsdt");
+        if (u) u.textContent = cb > 0 ? L().pointsClaimable(cb * USDT_PER_BLOCK) : L().pointsToGo(fmtNum(POINTS_PER_USDT_BLOCK - into));
+        var map = document.getElementById("levelMap");
+        if (map){
+          for (var i=0;i<map.children.length;i++){
+            var lv = i + 1, btn = map.children[i];
+            btn.classList.toggle("cleared", clearedLevels.indexOf(lv) >= 0);
+            btn.classList.toggle("current", mode === "run" && R && R.level === lv);
+            var s = btn.querySelector(".lv-s");
+            if (s) s.textContent = clearedLevels.indexOf(lv) >= 0 ? L().levelClearedTag : L().levelMeta(levelTarget(lv));
+          }
+        }
+        var gp = document.getElementById("gatePoints"); if (gp) gp.innerHTML = pointsSummaryHTML();
+        var cp = document.getElementById("claimPoints"); if (cp) cp.innerHTML = pointsSummaryHTML();
+      }
+
+      /* ---------------- DOM refs ---------------- */
+      var stageWrap = document.getElementById("stageWrap"),
+          canvas = document.getElementById("gameCanvas"),
+          ctx = canvas.getContext("2d"),
+          toastEl = document.getElementById("toast"),
+          overlay = document.getElementById("overlay"),
+          overlayCard = document.getElementById("overlayCard");
+      var toastTimer = null;
+      function toast(msg){
+        toastEl.textContent = msg; toastEl.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function(){ toastEl.classList.remove("show"); }, 1700);
+      }
+
+      /* ---------------- temple runner engine ----------------
+         Behind-view 3-lane runner on canvas. Objects carry d = metres
+         ahead of the pig; each frame d shrinks by speed*dt. Perspective:
+         t = 1 - d/VIEW maps distance to screen height and scale. */
+      var VIEW = 55;
+      var mode = "idle";            /* idle | run | over */
+      var paused = false;
+      var R = null;                 /* current run state */
+      var idleDist = 0;
+      var S = { level: 1, started: false, over: false };
+      var CW = 0, CH = 0;
+
+      function sizeCanvas(){
+        var w = canvas.clientWidth || stageWrap.clientWidth || 320;
+        var h = canvas.clientHeight || Math.round(w * 1.1);
+        var dpr = Math.min(2, window.devicePixelRatio || 1);
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        CW = w; CH = h;
+      }
+      function horizonY(){ return CH * 0.24; }
+      function groundY(){ return CH * 0.90; }
+      function persp(d){
+        var t = 1 - Math.max(0, Math.min(VIEW, d)) / VIEW;
+        var e = Math.pow(t, 2.1);
+        return {
+          y: horizonY() + (groundY() + CH * 0.10 - horizonY()) * e,
+          s: 0.10 + 0.90 * Math.pow(t, 1.7),
+          spread: Math.pow(t, 1.35)
+        };
+      }
+      function laneCenterX(lane, spread){
+        return CW / 2 + lane * CW * 0.335 * spread;
+      }
+      function newRun(level){
+        var cfg = LEVELS[level];
+        return {
+          level: level, cfg: cfg,
+          dist: 0, speed: cfg.speed, coins: 0,
+          lane: 0, laneX: 0,
+          jumpY: 0, vy: 0, sliding: 0,
+          objs: [], nextSpawnAt: 55, time: 0, dead: false
+        };
+      }
+      function spawnEvent(run){
+        var r = Math.random();
+        var base = VIEW + 6;
+        if (r < 0.30){
+          /* a line of coins in one lane */
+          var lane = Math.floor(Math.random() * 3) - 1;
+          for (var i = 0; i < 5; i++) run.objs.push({ kind: "coin", lane: lane, d: base + i * 3.2, taken: false });
+        } else if (r < 0.56){
+          run.objs.push({ kind: "block", lane: Math.floor(Math.random() * 3) - 1, d: base, passed: false });
+        } else if (r < 0.79){
+          run.objs.push({ kind: "barrier", lane: 0, d: base, passed: false });
+        } else {
+          run.objs.push({ kind: "beam", lane: 0, d: base, passed: false });
+        }
+        var gap = run.cfg.gapMin + Math.random() * (run.cfg.gapMax - run.cfg.gapMin);
+        gap = Math.max(gap, run.speed * 1.05); /* never spawn faster than a player can react */
+        run.nextSpawnAt = run.dist + gap;
+      }
+      function doLeft(){ if (R && mode === "run" && !paused && R.lane > -1){ R.lane--; sndClick(); } }
+      function doRight(){ if (R && mode === "run" && !paused && R.lane < 1){ R.lane++; sndClick(); } }
+      function doJump(){
+        if (R && mode === "run" && !paused && R.jumpY <= 0.001){
+          R.vy = 11.5; R.jumpY = 0.01; R.sliding = 0; sndJump();
+        }
+      }
+      function doSlide(){
+        if (R && mode === "run" && !paused){
+          if (R.jumpY > 0.001){ R.vy = -16; } /* slam down from a jump */
+          R.sliding = 0.62; sndClick();
+        }
+      }
+      function crash(){
+        if (!R || R.dead) return;
+        R.dead = true;
+        mode = "over";
+        S.over = true;
+        sndBad(); buzz([60, 40, 60]);
+        stageWrap.classList.remove("shake"); void stageWrap.offsetWidth; stageWrap.classList.add("shake");
+        updateHUD();
+        setTimeout(showDeath, 650);
+      }
+      function updateRun(dt){
+        var cfg = R.cfg;
+        R.time += dt;
+        R.speed = Math.min(cfg.speed + 6, cfg.speed + R.dist * 0.0022);
+        R.dist += R.speed * dt;
+        if (R.dist >= cfg.target){
+          R.dist = cfg.target;
+          updateHUD();
+          onWin();
+          return;
+        }
+        if (R.dist >= R.nextSpawnAt) spawnEvent(R);
+        /* player physics */
+        if (R.jumpY > 0 || R.vy > 0){
+          R.vy -= 30 * dt;
+          R.jumpY += R.vy * dt;
+          if (R.jumpY <= 0){ R.jumpY = 0; R.vy = 0; }
+        }
+        if (R.sliding > 0) R.sliding = Math.max(0, R.sliding - dt);
+        R.laneX += (R.lane - R.laneX) * Math.min(1, dt * 13);
+        if (Math.abs(R.lane - R.laneX) < 0.001) R.laneX = R.lane;
+        /* objects */
+        for (var i = R.objs.length - 1; i >= 0; i--){
+          var o = R.objs[i];
+          o.d -= R.speed * dt;
+          if (o.d < -3){ R.objs.splice(i, 1); continue; }
+          if (o.taken || o.passed) continue;
+          if (o.d < 1.3 && o.d > -0.7){
+            if (o.kind === "coin"){
+              if (R.lane === o.lane && R.jumpY < 1.3){
+                o.taken = true; R.coins++; sndCoin(); updateHUD();
+              }
+            } else if (o.kind === "block"){
+              if (R.lane === o.lane){ crash(); return; }
+              o.passed = true;
+            } else if (o.kind === "barrier"){
+              if (R.jumpY < 0.5){ crash(); return; }
+              o.passed = true;
+            } else if (o.kind === "beam"){
+              if (R.sliding <= 0){ crash(); return; }
+              o.passed = true;
+            }
+          }
+        }
+        updateHUD();
+      }
+      var lastHudDist = -1, lastHudCoins = -1, lastHudLevel = 0;
+      function updateHUD(){
+        var dist = R ? Math.floor(R.dist) : 0;
+        var coins = R ? R.coins : 0;
+        var lv = R ? R.level : (S ? S.level : 1);
+        if (dist === lastHudDist && coins === lastHudCoins && lv === lastHudLevel) return;
+        lastHudDist = dist; lastHudCoins = coins; lastHudLevel = lv;
+        var sd = document.getElementById("statDist"); if (sd) sd.textContent = L().meter(fmtNum(dist));
+        var sc = document.getElementById("statCoins"); if (sc) sc.textContent = coins;
+        var tg = levelTarget(lv);
+        var st = document.getElementById("statTarget"); if (st) st.textContent = L().meter(fmtNum(tg));
+        var pf = document.getElementById("progFill");
+        if (pf) pf.style.width = Math.min(100, Math.round(dist / tg * 100)) + "%";
+      }
+      function forceHUD(){ lastHudDist = -1; updateHUD(); }
+
+      /* ---------------- drawing ---------------- */
+      function drawEmoji(txt, x, y, size){
+        ctx.font = size + "px 'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(txt, x, y);
+      }
+      function drawScene(now){
+        if (!CW) sizeCanvas();
+        var W = CW, H = CH, hy = horizonY(), gy = groundY();
+        var scrollDist = (mode === "run" && R) ? R.dist : idleDist;
+        var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        /* sky */
+        var sky = ctx.createLinearGradient(0, 0, 0, hy * 1.6);
+        if (dark){ sky.addColorStop(0, "#20343f"); sky.addColorStop(1, "#3d5a43"); }
+        else { sky.addColorStop(0, "#a5dcf5"); sky.addColorStop(1, "#dff3d8"); }
+        ctx.fillStyle = sky; ctx.fillRect(0, 0, W, hy + 2);
+        /* distant temple pyramid at the horizon */
+        ctx.fillStyle = dark ? "#4a4232" : "#b3a071";
+        var tw = W * 0.30, th = hy * 0.78, tx = W / 2 - tw / 2, ty = hy - th;
+        ctx.beginPath();
+        ctx.moveTo(tx, hy); ctx.lineTo(tx + tw * 0.18, ty + th * 0.34); ctx.lineTo(tx + tw * 0.34, ty + th * 0.34);
+        ctx.lineTo(tx + tw * 0.40, ty); ctx.lineTo(tx + tw * 0.60, ty); ctx.lineTo(tx + tw * 0.66, ty + th * 0.34);
+        ctx.lineTo(tx + tw * 0.82, ty + th * 0.34); ctx.lineTo(tx + tw, hy); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = dark ? "#5d5340" : "#c9b586";
+        ctx.fillRect(tx + tw * 0.44, ty + th * 0.30, tw * 0.12, th * 0.30);
+        /* jungle sides */
+        ctx.fillStyle = dark ? "#1d3a24" : "#3f7d34";
+        ctx.fillRect(0, hy, W * 0.10, H - hy);
+        ctx.fillRect(W * 0.90, hy, W * 0.10, H - hy);
+        ctx.fillStyle = dark ? "#26502f" : "#57a047";
+        for (var sIdx = 0; sIdx < 6; sIdx++){
+          var ty2 = hy + (H - hy) * (sIdx / 6) + ((scrollDist * 14) % ((H - hy) / 6));
+          if (ty2 > H) ty2 -= (H - hy);
+          var tr = 8 + (ty2 - hy) / (H - hy) * 20;
+          ctx.beginPath(); ctx.arc(W * 0.05, ty2, tr, 0, 7); ctx.fill();
+          ctx.beginPath(); ctx.arc(W * 0.95, ty2 + 12, tr * 0.85, 0, 7); ctx.fill();
+        }
+        /* stone track trapezoid */
+        var topHalf = W * 0.075, botHalf = W * 0.46;
+        ctx.fillStyle = dark ? "#6b5f45" : "#c9b586";
+        ctx.beginPath();
+        ctx.moveTo(W / 2 - topHalf, hy); ctx.lineTo(W / 2 + topHalf, hy);
+        ctx.lineTo(W / 2 + botHalf, H); ctx.lineTo(W / 2 - botHalf, H);
+        ctx.closePath(); ctx.fill();
+        /* moving slab lines for speed sensation */
+        ctx.strokeStyle = dark ? "rgba(0,0,0,.28)" : "rgba(93,81,56,.35)";
+        ctx.lineWidth = 2;
+        var slabGap = 6, off = scrollDist % slabGap;
+        for (var k = 0; k < 11; k++){
+          var dd = k * slabGap - off + slabGap;
+          if (dd <= 0.4) continue;
+          var pp = persp(dd);
+          var half = (W * 0.075) + (botHalf - W * 0.075) * pp.spread;
+          ctx.beginPath(); ctx.moveTo(W / 2 - half, pp.y); ctx.lineTo(W / 2 + half, pp.y); ctx.stroke();
+        }
+        /* lane divider lines */
+        ctx.strokeStyle = dark ? "rgba(255,240,200,.30)" : "rgba(255,252,235,.55)";
+        ctx.lineWidth = 2.5;
+        [-0.5, 0.5].forEach(function(lb){
+          ctx.beginPath();
+          ctx.moveTo(W / 2 + lb * W * 0.15, hy);
+          ctx.lineTo(W / 2 + lb * W * 0.67, H);
+          ctx.stroke();
+        });
+        /* finish banner near target */
+        if (mode === "run" && R){
+          var remain = R.cfg.target - R.dist;
+          if (remain < VIEW){
+            var fp = persp(Math.max(remain, 0.5));
+            ctx.fillStyle = "#e8a812";
+            var fw = W * 0.67 * fp.spread + 20 * fp.s;
+            ctx.fillRect(W / 2 - fw / 2, fp.y - 64 * fp.s, fw, 13 * fp.s + 3);
+            drawEmoji("🏁", W / 2, fp.y - 58 * fp.s, 22 * fp.s + 6);
+          }
+        }
+        /* objects, far to near */
+        if (R && (mode === "run" || mode === "over")){
+          var sorted = R.objs.slice().sort(function(a, b){ return b.d - a.d; });
+          sorted.forEach(function(o){
+            if (o.taken || o.d > VIEW) return;
+            var p = persp(Math.max(o.d, 0));
+            var x = laneCenterX(o.lane, p.spread);
+            if (o.kind === "coin"){
+              var bob = Math.sin(now / 260 + o.d) * 3 * p.s;
+              drawEmoji("🪙", x, p.y - 20 * p.s + bob, 30 * p.s + 6);
+            } else if (o.kind === "block"){
+              drawEmoji("🗿", x, p.y - 34 * p.s, 74 * p.s + 8);
+            } else if (o.kind === "barrier"){
+              var bw = W * 0.67 * p.spread + 26 * p.s;
+              ctx.fillStyle = "#8a5a2e";
+              ctx.fillRect(W / 2 - bw / 2, p.y - 20 * p.s, bw, 13 * p.s + 3);
+              ctx.fillStyle = "#a4713d";
+              ctx.fillRect(W / 2 - bw / 2, p.y - 20 * p.s, bw, 4 * p.s + 1);
+              drawEmoji("🪵", W / 2 - bw * 0.28, p.y - 13 * p.s, 24 * p.s + 5);
+              drawEmoji("🪵", W / 2 + bw * 0.28, p.y - 13 * p.s, 24 * p.s + 5);
+            } else if (o.kind === "beam"){
+              var ew = W * 0.67 * p.spread + 26 * p.s;
+              var beamTop = p.y - 96 * p.s;
+              ctx.fillStyle = dark ? "#57492f" : "#8a7c5c";
+              ctx.fillRect(W / 2 - ew / 2, beamTop, ew, 18 * p.s + 4);
+              ctx.fillStyle = "rgba(0,0,0,.18)";
+              ctx.fillRect(W / 2 - ew / 2, beamTop + (18 * p.s + 4) - 4, ew, 4);
+              drawEmoji("🌿", W / 2 - ew * 0.32, beamTop + 22 * p.s, 22 * p.s + 5);
+              drawEmoji("🌿", W / 2 + ew * 0.32, beamTop + 22 * p.s, 22 * p.s + 5);
+              /* posts */
+              ctx.fillStyle = dark ? "#463b26" : "#6d5c33";
+              ctx.fillRect(W / 2 - ew / 2, beamTop, 7 * p.s + 2, 96 * p.s);
+              ctx.fillRect(W / 2 + ew / 2 - (7 * p.s + 2), beamTop, 7 * p.s + 2, 96 * p.s);
+            }
+          });
+        }
+        /* pig player */
+        var runDist = (mode === "run" && R) ? R.dist : idleDist;
+        var laneX = R ? R.laneX : Math.sin(now / 2400) * 0.7;
+        var jumpY = R ? R.jumpY : 0;
+        var sliding = R ? R.sliding : 0;
+        var px = laneCenterX(laneX, 1);
+        var bobY = (jumpY <= 0 && sliding <= 0) ? Math.abs(Math.sin(now / 95 + runDist)) * 3.2 : 0;
+        var py = gy - jumpY * H * 0.17 - bobY;
+        /* shadow */
+        ctx.fillStyle = "rgba(0,0,0,.25)";
+        ctx.beginPath();
+        ctx.ellipse(px, gy + 8, 30 - jumpY * 5, 7, 0, 0, 7);
+        ctx.fill();
+        ctx.save();
+        ctx.translate(px, py - 26);
+        if (R) ctx.rotate((R.lane - R.laneX) * -0.28);
+        if (R && R.dead) ctx.rotate(0.5);
+        if (sliding > 0) ctx.scale(1.12, 0.55);
+        drawEmoji("🐷", 0, sliding > 0 ? 12 : 0, 62);
+        ctx.restore();
+        /* paused veil */
+        if (paused && mode === "run"){
+          ctx.fillStyle = "rgba(20,16,6,.45)";
+          ctx.fillRect(0, 0, W, H);
+          drawEmoji("⏸", W / 2, H / 2 - 16, 54);
+          ctx.fillStyle = "#fff";
+          ctx.font = "700 16px 'PingFang SC',sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(isEn() ? "Paused" : "已暂停", W / 2, H / 2 + 26);
+        }
+      }
+      var lastTs = 0;
+      function frame(ts){
+        requestAnimationFrame(frame);
+        if (!lastTs) lastTs = ts;
+        var dt = Math.min(0.05, (ts - lastTs) / 1000);
+        lastTs = ts;
+        if (mode === "run" && R && !paused && !overlay.classList.contains("show")){
+          updateRun(dt);
+        } else if (mode === "idle"){
+          idleDist += dt * 5;
+        }
+        drawScene(ts);
+      }
+
+      /* ---------------- input: swipe, buttons, keys ---------------- */
+      var touchStart = null;
+      canvas.addEventListener("touchstart", function(e){
+        if (e.touches.length === 1) touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }, { passive: true });
+      canvas.addEventListener("touchend", function(e){
+        if (!touchStart) return;
+        var t = e.changedTouches[0];
+        var dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
+        touchStart = null;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < 24){
+          doJump(); /* a plain tap jumps */
+          return;
+        }
+        if (Math.abs(dx) > Math.abs(dy)){
+          if (dx > 0) doRight(); else doLeft();
+        } else {
+          if (dy < 0) doJump(); else doSlide();
+        }
+      }, { passive: true });
+      canvas.addEventListener("mousedown", function(){ /* desktop click = jump */ doJump(); });
+      function bindHold(id, fn){
+        var el = document.getElementById(id);
+        el.addEventListener("click", fn);
+        el.addEventListener("touchstart", function(e){ e.preventDefault(); fn(); }, { passive: false });
+      }
+      bindHold("ctlLeft", doLeft);
+      bindHold("ctlRight", doRight);
+      bindHold("ctlJump", doJump);
+      bindHold("ctlSlide", doSlide);
+      document.addEventListener("keydown", function(e){
+        if (overlay.classList.contains("show")) return;
+        if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A"){ doLeft(); e.preventDefault(); }
+        else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D"){ doRight(); e.preventDefault(); }
+        else if (e.key === "ArrowUp" || e.key === "w" || e.key === "W"){ doJump(); e.preventDefault(); }
+        else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S"){ doSlide(); e.preventDefault(); }
+        else if (e.key === " "){ togglePause(); e.preventDefault(); }
+      });
+      function togglePause(){
+        if (mode !== "run") return;
+        paused = !paused;
+        document.getElementById("btnPause").textContent = paused ? "▶️" : "⏸";
+        toast(paused ? L().pausedToast : L().resumedToast);
+      }
+      document.getElementById("btnPause").addEventListener("click", togglePause);
+      document.addEventListener("visibilitychange", function(){
+        if (document.hidden && mode === "run" && !paused) togglePause();
+      });
+
+      /* ---------------- overlays ---------------- */
+      function showOverlay(html){ overlayCard.innerHTML = html; overlay.classList.add("show"); }
+      function hideOverlay(){ overlay.classList.remove("show"); }
+      function confetti(){
+        var icons = ["🐷","🎉","🪙","🏆","🌿","⭐"];
+        for (var i=0;i<28;i++){
+          var s = document.createElement("span");
+          s.className = "confetti"; s.textContent = icons[i % icons.length];
+          s.style.left = Math.random()*96 + "vw";
+          s.style.fontSize = (16 + Math.random()*18) + "px";
+          s.style.animationDuration = (1.6 + Math.random()*1.8) + "s";
+          s.style.animationDelay = (Math.random()*0.5) + "s";
+          document.body.appendChild(s);
+          (function(el){ setTimeout(function(){ el.remove(); }, 4200); })(s);
+        }
+      }
+      function onWin(){
+        mode = "over"; S.over = true; S.started = true;
+        sndWin(); buzz([40,60,40]); confetti();
+        var firstClear = clearedLevels.indexOf(S.level) < 0;
+        if (firstClear){
+          clearedLevels.push(S.level);
+          clearedLevels.sort(function(a,b){ return a-b; });
+          saveState();
+        }
+        completePendingInvite(S.level); /* invite auto-reward: mark the pending invite completed */
+        updatePointsUI();
+        updateLivesUI();
+        var cb = claimableBlocks();
+        var isFinal = S.level >= TOTAL_LEVELS;
+        var allDone = clearedLevels.length >= TOTAL_LEVELS;
+        var pointsHtml =
+          '<div class="win-points">' +
+          (firstClear ? L().winFirst(fmtNum(POINTS_PER_LEVEL)) : L().winRepeat) +
+          pointsSummaryHTML() +
+          '</div>';
+        var html =
+          '<div class="big-emoji">' + (isFinal ? '👑🐷👑' : '🐷🏆') + '</div>' +
+          '<h2>' + (isFinal ? L().winTitleFinal : L().winTitle(S.level)) + '</h2>' +
+          '<p>' + (allDone ? L().winDescAll : (isFinal ? L().winDescFinal : L().winDescNormal)) + '</p>' +
+          pointsHtml +
+          (cb > 0 ? '<button class="btn bn-btn" id="ovClaim">' + L().winClaim(cb * USDT_PER_BLOCK) + '</button>' : '') +
+          (!isFinal ? '<button class="btn" id="ovNext">' + L().winNext(S.level+1) + '</button>' : '') +
+          '<button class="btn secondary" id="ovReplay">' + L().winReplay(S.level) + '</button>' +
+          (isFinal ? '<button class="btn secondary" id="ovBack1">' + L().winBack1 + '</button>' : '');
+        showOverlay(html);
+        var oc = document.getElementById("ovClaim");
+        if (oc) oc.addEventListener("click", function(){ showClaim(); });
+        var on = document.getElementById("ovNext");
+        if (on) on.addEventListener("click", function(){ tryStart(S.level+1); });
+        document.getElementById("ovReplay").addEventListener("click", function(){ tryStart(S.level); });
+        var ob = document.getElementById("ovBack1");
+        if (ob) ob.addEventListener("click", function(){ tryStart(1); });
+      }
+      function showDeath(){
+        if (!R) return;
+        var html =
+          '<div class="big-emoji">🐷💥</div>' +
+          '<h2>' + L().deathTitle + '</h2>' +
+          '<p>' + L().deathDesc(fmtNum(Math.floor(R.dist)), fmtNum(R.cfg.target), R.coins) + '</p>' +
+          '<div class="win-points">' + pointsSummaryHTML() + '</div>' +
+          '<button class="btn" id="ovRetry">' + L().deathRetry(R.level) + '</button>' +
+          '<button class="btn secondary" id="ovHome">' + L().deathHome + '</button>';
+        showOverlay(html);
+        document.getElementById("ovRetry").addEventListener("click", function(){ tryStart(R.level); });
+        document.getElementById("ovHome").addEventListener("click", function(){ mode = "idle"; showGate(false); });
+      }
+
+      /* ---------------- lives gate / invite / redeem ---------------- */
+      function setMsg(id, text, ok){
+        var m = document.getElementById(id);
+        if (!m) return;
+        m.textContent = text;
+        m.className = "msg" + (ok ? " ok" : "");
+      }
+      function copyText(text){
+        function done(){ toast(L().copied); }
+        function fallback(){
+          var ta = document.createElement("textarea");
+          ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+          document.body.appendChild(ta); ta.select();
+          try{ document.execCommand("copy"); done(); }
+          catch(e){ toast(L().copyFail); }
+          ta.remove();
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(text).then(done, fallback);
+        } else fallback();
+      }
+      function redeemByCode(){
+        var input = document.getElementById("redeemCode");
+        var code = (input.value || "").trim().toUpperCase();
+        if (!/^PIGR-[A-Z0-9]{10}$/.test(code)){ setMsg("redeemMsg", isEn() ? "Invalid code format: use the 15-character PIGR- code issued by the operator" : "兑换码格式不对：应为运营方发放的 PIGR- 开头 15 位兑换码，再检查一下"); return; }
+        if (lives >= MAX_LIVES){ setMsg("redeemMsg", isEn() ? "Lives are already full (10) - play a few games first to avoid wasting a one-time code" : "血条已经满格（10 格），先玩几局再来兑换，别浪费一次性码"); return; }
+        setMsg("redeemMsg", isEn() ? "Verifying code..." : "正在校验兑换码…", true);
+        sha256Hex(code).then(function(hash){
+          if (usedRedeemCodes.indexOf(hash) >= 0){ setMsg("redeemMsg", isEn() ? "This code has already been used - one-time codes cannot be reused" : "这个兑换码已经用过了，一次性码不能重复使用"); return; }
+          if (REDEEM_CODE_HASHES.indexOf(hash) < 0){ setMsg("redeemMsg", isEn() ? "Invalid code: only operator-issued codes work" : "兑换码无效：只认运营方签发的兑换码，自己随便编的不行哦"); return; }
+          usedRedeemCodes.push(hash);
+          lives = MAX_LIVES;
+          saveState();
+          updateLivesUI();
+          sndWin();
+          setMsg("redeemMsg", isEn() ? "Redeemed! Lives refilled to 10 and this code is now void - tap Back to play" : "✅ 兑换成功！血条已回满 10 格，这个码已作废，点「返回」就能开局", true);
+        }).catch(function(){
+          setMsg("redeemMsg", isEn() ? "This browser does not support secure verification - try another browser or contact the operator" : "当前浏览器不支持安全校验，换个浏览器再试，或直接联系运营方加血");
+        });
+      }
+
+      function showGateEN(canClose){
+        if (typeof canClose === "boolean") gateCanClose = canClose;
+        var html =
+          '<div class="big-emoji">🐷</div><h2>Piggy Temple Run</h2>' +
+          '<div class="gate-lives"><span id="gateHearts"></span><span class="gate-lives-num">Lives <b id="gateLivesNum"></b></span></div>' +
+          '<p class="msg ok" id="gateCreditNote" style="display:none;text-align:center"></p>' +
+          '<div class="rules">' +
+          '👉 <b>How to play</b>: The pig runs on its own — you steer. <b>Swipe left/right</b> (or buttons / arrow keys) to switch lanes and dodge the <b>🗿 statues</b>, <b>swipe up to jump</b> the 🪵 logs, <b>swipe down to slide</b> under the stone beams. Hitting an obstacle ends the run; reach the <b>target distance</b> to clear the level.<br/>' +
+          '⭐ <b>Points</b>: <b>15 levels</b> in total. First clear of each level: <b>+10,000 points</b> (replays do not score again). <b>100,000 points = 5 USDT</b> from the operator.<br/>' +
+          '❤️ Everyone starts with <b>3 free lives</b>. Each game costs 1 life; at 0 you are locked and cannot start (clearing a level does not refund a life).<br/>' +
+          '<span id="gateInviteRule">👥 <b>Invite friends for auto lives</b>: send friends the link with your invite code. When a friend opens it and <b>clears 1 level</b>, you <b>automatically get +1 life</b> next time you open the game (max 10) — no operator, no redeem code.</span><br/>' +
+          '🟡 <b>Binance sign-up refill</b>: register via the Binance invite link below and complete <b>identity verification</b>, then contact the operator for manual verification to get a one-time redeem code that refills lives to <b>10</b>.<br/>' +
+          '💾 Lives are saved in this browser: refreshing, closing or going back will not reset them; used redeem codes stay marked as used.' +
+          '</div>' +
+          '<p class="lock-note" id="gateLockNote">❌ Out of lives — refill using one of the options below, then you can play again</p>' +
+          '<button class="btn" id="gStartNext">Start</button>' +
+          (gateCanClose ? '<button class="btn secondary" id="gClose">← Back to current run</button>' : '<button class="btn secondary" id="gClose">View level map (pick any level)</button>') +
+          '<div class="panel">' +
+            '<div class="panel-title">🏆 Claim USDT with Points (100,000 pts = 5 USDT)</div>' +
+            '<p id="gatePoints"></p>' +
+            '<button class="btn sm bn-btn" id="gClaimOpen">Claim USDT / How to claim</button>' +
+            '<p class="panel-note">How to claim: send your Game ID + Binance UID to the operator for manual verification — confirming you registered on Binance with referral code <b>VIP700</b> and completed identity verification (one completed trade is preferred). The operator pays at 100,000 points = 5 USDT. Points only count from the progress recorded on this page; screenshots do not count.</p>' +
+          '</div>' +
+          '<div class="panel"><div id="invitePanelBody"></div></div>' +
+          '<div class="panel">' +
+            '<div class="panel-title">🟡 Binance Tasks (Register → Verify → Trade)</div>' +
+            '<ol class="task-steps">' +
+            '<li><b>Register on Binance</b>: tap the button below and register with the invite link (code VIP700)</li>' +
+            '<li><b>Verify identity</b>: complete KYC in the Binance App — required for both points claims and life refills</li>' +
+            '<li><b>Make one trade</b>: any spot trade works (any amount, 10 USDT or more recommended); the operator prioritises this when verifying point claims</li>' +
+            '</ol>' +
+            '<p>Invite link: <span class="link-text">' + BN_URL + '</span><br/>Referral code: <b>VIP700</b></p>' +
+            '<a class="btn sm bn-btn" href="' + BN_URL + '" target="_blank" rel="noopener">Register on Binance →</a>' +
+            '<button class="btn secondary sm" id="gRedeemOpen">I registered + verified — enter redeem code</button>' +
+            '<p class="panel-note">After registering and verifying, contact the operator for verification. Once approved you will receive a one-time redeem code — come back and enter it to refill lives.</p>' +
+          '</div>';
+        showOverlay(html);
+        updateLivesUI();
+        updatePointsUI();
+        document.getElementById("gStartNext").addEventListener("click", function(){ tryStart(nextLevel()); });
+        document.getElementById("gClaimOpen").addEventListener("click", function(){ showClaim(); });
+        var gc = document.getElementById("gClose");
+        if (gc) gc.addEventListener("click", function(){ hideOverlay(); if (gateCanClose && mode === "run" && paused) togglePause(); });
+        renderInvitePanel();
+        document.getElementById("gRedeemOpen").addEventListener("click", function(){ showRedeem(); });
+      }
+      function showClaimEN(){
+        var cb = claimableBlocks();
+        var html =
+          '<div class="big-emoji">🏆</div><h2>Claim USDT with Points</h2>' +
+          '<p>Rate: <b>100,000 points = 5 USDT</b>. First clear of each level gives +10,000 points; all 15 levels give 150,000 points in total.</p>' +
+          '<div class="win-points" id="claimPoints">' + pointsSummaryHTML() + '</div>' +
+          '<p style="text-align:left"><b>How to claim (manual verification):</b><br/>' +
+          '1. Register on Binance with referral code <b>VIP700</b> and complete <b>identity verification</b> first, ideally with one trade as well (required — no registration/verification, no claim).<br/>' +
+          '2. Enter your Binance UID below and tap Copy Claim Info to send it to the operator.<br/>' +
+          '3. The operator checks your UID registration, verification (and trade) on Binance and, once your points qualify, sends you the USDT.<br/>' +
+          '4. After you receive the USDT, come back and tap Mark as Received so it is not counted twice.</p>' +
+          '<div class="redeem-box">' +
+            '<p>Your Game ID: <span class="code-chip">' + playerId + '</span></p>' +
+            '<input class="txt-input" id="claimUid" placeholder="Enter your Binance UID (find it in the Binance App)" autocomplete="off" />' +
+            '<button class="btn sm bn-btn" id="cCopy">📋 Copy claim info for the operator</button>' +
+            (cb > 0
+              ? '<button class="btn secondary sm" id="cMark">I received ' + (cb * USDT_PER_BLOCK) + ' USDT — mark as claimed</button>'
+              : '<p class="panel-note">Not enough points yet for 100,000 — keep clearing levels. Clear 10 levels to claim for the first time.</p>') +
+          '</div>' +
+          '<p class="msg" id="claimMsg"></p>' +
+          '<div class="safe-tip">✅ Safety: verification only needs your Game ID and Binance UID. Never send your password or SMS codes to anyone.<br/>💾 Points are saved in this browser: refreshing or closing will not reset them; clearing browser data or switching devices starts over, so claim promptly once you qualify.</div>' +
+          '<a class="btn sm bn-btn" href="' + BN_URL + '" target="_blank" rel="noopener">Not registered yet? Register on Binance (code VIP700) →</a>' +
+          '<button class="btn secondary" id="cBack">← Back</button>';
+        showOverlay(html);
+        document.getElementById("cCopy").addEventListener("click", function(){
+          var uid = (document.getElementById("claimUid").value || "").trim();
+          var lvList = clearedLevels.slice().sort(function(a,b){return a-b;}).join(", ") || "none";
+          copyText("Hello, I would like to claim USDT for Piggy Temple Run points. Game ID: " + playerId + ", Binance UID: " + (uid || "(not filled in)") + ", Cleared levels: " + lvList + ", Total points: " + fmtNum(pointsTotal()) + ", Claimable: " + (claimableBlocks() * USDT_PER_BLOCK) + " USDT (100,000 pts = 5 USDT). I registered on Binance with referral code VIP700 and completed identity verification. Please verify and pay.");
+          setMsg("claimMsg", "Claim info copied — send it to the operator!", true);
+        });
+        var cm = document.getElementById("cMark");
+        if (cm) cm.addEventListener("click", function(){
+          claimedBlocks += claimableBlocks();
+          saveState();
+          updatePointsUI();
+          sndWin();
+          showClaim();
+          setMsg("claimMsg", "✅ Marked as claimed. Points keep accumulating — reach the next 100,000 to claim another 5 USDT.", true);
+        });
+        document.getElementById("cBack").addEventListener("click", function(){ showGate(); });
+      }
+      function showRedeemEN(){
+        var html =
+          '<div class="big-emoji">🎁</div><h2>Redeem Code for Lives</h2>' +
+          '<p><b>Step 1 · Submit for verification:</b> send your Game ID and Binance UID to the operator. The operator will check that you registered with referral code <b>VIP700</b> and completed identity verification.</p>' +
+          '<div class="redeem-box">' +
+            '<p>Your Game ID: <span class="code-chip">' + playerId + '</span></p>' +
+            '<input class="txt-input" id="uidInput" placeholder="Enter your Binance UID (find it in the Binance App)" autocomplete="off" />' +
+            '<button class="btn sm" id="rCopy">📋 Copy verification info for the operator</button>' +
+          '</div>' +
+          '<p><b>Step 2 · Enter the redeem code:</b> after verification the operator sends you a one-time code (starting with PIGR-). Enter it below to refill lives straight to 10. Each code works once and stays marked as used; made-up codes do not work.</p>' +
+          '<div class="input-row"><input class="txt-input" id="redeemCode" placeholder="Enter the operator code, e.g. PIGR-XXXXXXXXXX" autocomplete="off" /><button class="mini-btn" id="rRedeem" type="button">Redeem</button></div>' +
+          '<p class="msg" id="redeemMsg"></p>' +
+          '<div class="safe-tip">✅ Safety: verification only needs your Game ID and Binance UID. Never send your password or SMS codes to anyone.<br/>💾 Lives and used codes are saved in this browser; refreshing, closing or going back will not reset them. Clearing browser data or switching devices resets them.</div>' +
+          '<button class="btn secondary" id="rBack">← Back</button>';
+        showOverlay(html);
+        document.getElementById("rCopy").addEventListener("click", function(){
+          var uid = (document.getElementById("uidInput").value || "").trim();
+          copyText("Hello, I registered on Binance with referral code VIP700 and completed identity verification. Please verify my life refill. My Game ID: " + playerId + ", Binance UID: " + (uid || "(not filled in)"));
+          setMsg("redeemMsg", "Verification info copied — send it to the operator!", true);
+        });
+        document.getElementById("rRedeem").addEventListener("click", redeemByCode);
+        document.getElementById("rBack").addEventListener("click", function(){ showGate(); });
+      }
+
+      function showGate(canClose){
+        if (isEn()){ showGateEN(canClose); return; }
+        if (typeof canClose === "boolean") gateCanClose = canClose;
+        var html =
+          '<div class="big-emoji">🐷</div><h2>猪猪勇闯神庙 · 跑酷</h2>' +
+          '<div class="gate-lives"><span id="gateHearts"></span><span class="gate-lives-num">血条 <b id="gateLivesNum"></b></span></div>' +
+          '<p class="msg ok" id="gateCreditNote" style="display:none;text-align:center"></p>' +
+          '<div class="rules">' +
+          '👉 <b>跑酷玩法</b>：小猪自动往前跑，你负责操控——<b>左右滑动</b>（或点按钮 / 按方向键）换道躲开<b>石像 🗿</b>，<b>上滑跳跃</b>跳过倒木 🪵，<b>下滑滑铲</b>钻过石梁；撞上障碍本局结束，跑满<b>目标距离</b>就过关<br/>' +
+          '⭐ <b>积分奖励</b>：共 <b>15 关</b>，每关第一次通关 <b>+10,000 积分</b>（重复通关不重复计分），<b>100,000 积分找运营方兑换 5 USDT</b><br/>' +
+          '❤️ 每人免费 <b>3 格血条</b>，每开一局扣 1 格，扣完就锁定，不能再开局（通关也不返血哦）<br/>' +
+          '<span id="gateInviteRule">👥 <b>邀请好友自动加血</b>：把带你邀请码的链接发给好友，好友打开并<b>过完 1 关</b>，你下次打开游戏<b>自动 +1 格血</b>（上限 10 格），不用找运营方、不用兑换码</span><br/>' +
+          '🟡 <b>币安注册认证回满</b>：用下方币安邀请链接注册并完成<b>实名认证</b>，联系运营方手动核实，领一次性兑换码，输入后血条直接<b>回满 10 格</b><br/>' +
+          '💾 血条保存在本机浏览器：刷新、关页、返回都不会重置；用过的兑换码会一直记为已用' +
+          '</div>' +
+          '<p class="lock-note" id="gateLockNote">❌ 血条已空，先用下面任一方式加血，加完就能继续开局</p>' +
+          '<button class="btn" id="gStartNext">开始闯关</button>' +
+          (gateCanClose ? '<button class="btn secondary" id="gClose">← 回到当前对局</button>' : '<button class="btn secondary" id="gClose">先看看关卡地图（任选一关）</button>') +
+          '<div class="panel">' +
+            '<div class="panel-title">🏆 积分兑换 USDT（100,000 分 = 5 USDT）</div>' +
+            '<p id="gatePoints"></p>' +
+            '<button class="btn sm bn-btn" id="gClaimOpen">领取 USDT / 查看领取办法</button>' +
+            '<p class="panel-note">领取方式：把游戏 ID + 币安 UID 发给运营方人工核对——确认你是用邀请码 <b>VIP700</b> 注册币安、完成实名认证的玩家（完成过一笔交易更好），核对通过后运营方按 100,000 积分 = 5 USDT 发放。积分只认本页记录的通关进度，截图无效。</p>' +
+          '</div>' +
+          '<div class="panel"><div id="invitePanelBody"></div></div>' +
+          '<div class="panel">' +
+            '<div class="panel-title">🟡 币安任务链（注册 → 认证 → 交易）</div>' +
+            '<ol class="task-steps">' +
+            '<li><b>注册币安</b>：点下方按钮用邀请链接注册（邀请码 VIP700）</li>' +
+            '<li><b>实名认证</b>：在币安 App 里完成 KYC 身份认证——领积分兑换和回血都要先过这一步</li>' +
+            '<li><b>完成一笔交易</b>：现货买一笔就行（金额不限，建议 ≥10 USDT），兑换积分时运营方会优先核对</li>' +
+            '</ol>' +
+            '<p>邀请链接：<span class="link-text">' + BN_URL + '</span><br/>邀请码：<b>VIP700</b></p>' +
+            '<a class="btn sm bn-btn" href="' + BN_URL + '" target="_blank" rel="noopener">去币安注册 →</a>' +
+            '<button class="btn secondary sm" id="gRedeemOpen">我已完成注册 + 认证，输入兑换码</button>' +
+            '<p class="panel-note">注册成功并完成实名认证后，联系运营方核实；核实通过会发你一次性兑换码，回来输入即可回满。</p>' +
+          '</div>';
+        showOverlay(html);
+        updateLivesUI();
+        updatePointsUI();
+        document.getElementById("gStartNext").addEventListener("click", function(){ tryStart(nextLevel()); });
+        document.getElementById("gClaimOpen").addEventListener("click", function(){ showClaim(); });
+        var gc = document.getElementById("gClose");
+        if (gc) gc.addEventListener("click", function(){ hideOverlay(); if (gateCanClose && mode === "run" && paused) togglePause(); });
+        renderInvitePanel();
+        document.getElementById("gRedeemOpen").addEventListener("click", function(){ showRedeem(); });
+      }
+      function showClaim(){
+        if (isEn()){ showClaimEN(); return; }
+        var cb = claimableBlocks();
+        var html =
+          '<div class="big-emoji">🏆</div><h2>积分兑换 USDT</h2>' +
+          '<p>兑换标准：<b>100,000 积分 = 5 USDT</b>。每关第一次通关 +10,000 积分，15 关全通共 150,000 分。</p>' +
+          '<div class="win-points" id="claimPoints">' + pointsSummaryHTML() + '</div>' +
+          '<p style="text-align:left"><b>领取步骤（人工核实）：</b><br/>' +
+          '1️⃣ 先用邀请码 <b>VIP700</b> 注册币安并完成<b>实名认证</b>，最好再完成一笔交易（领积分的前提，没注册认证领不了）；<br/>' +
+          '2️⃣ 在下面填你的币安 UID，点「复制领取信息」发给运营方；<br/>' +
+          '3️⃣ 运营方在币安后台核对 UID 的注册、认证（及交易）情况，确认积分达标后把 USDT 发给你；<br/>' +
+          '4️⃣ 收到 USDT 后，回来点「我已收到，标记已领取」，免得下次重复计算。</p>' +
+          '<div class="redeem-box">' +
+            '<p>你的游戏 ID：<span class="code-chip">' + playerId + '</span></p>' +
+            '<input class="txt-input" id="claimUid" placeholder="输入你的币安 UID（在币安 App 里可查）" autocomplete="off" />' +
+            '<button class="btn sm bn-btn" id="cCopy">📋 复制领取信息发给运营方</button>' +
+            (cb > 0
+              ? '<button class="btn secondary sm" id="cMark">我已收到 ' + (cb * USDT_PER_BLOCK) + ' USDT，标记已领取</button>'
+              : '<p class="panel-note">还没攒够 100,000 分，先继续闯关吧——过 10 关就能领第一次。</p>') +
+          '</div>' +
+          '<p class="msg" id="claimMsg"></p>' +
+          '<div class="safe-tip">✅ 安全提示：核实全程只需提供游戏 ID 和币安 UID，不要把密码、短信验证码发给任何人。<br/>💾 积分保存在本机浏览器：刷新、关页不会清零；清除浏览器数据或换设备会重新开始，所以达标后尽快领取。</div>' +
+          '<a class="btn sm bn-btn" href="' + BN_URL + '" target="_blank" rel="noopener">还没注册？去币安注册（邀请码 VIP700）→</a>' +
+          '<button class="btn secondary" id="cBack">← 返回</button>';
+        showOverlay(html);
+        document.getElementById("cCopy").addEventListener("click", function(){
+          var uid = (document.getElementById("claimUid").value || "").trim();
+          var lvList = clearedLevels.slice().sort(function(a,b){return a-b;}).join("、") || "无";
+          copyText("你好，我要领取《猪猪勇闯神庙》积分兑换 USDT。游戏 ID：" + playerId + "，币安 UID：" + (uid || "（还没填）") + "，已通关关卡：" + lvList + "，总积分：" + fmtNum(pointsTotal()) + "，可兑换：" + (claimableBlocks() * USDT_PER_BLOCK) + " USDT（100,000 分 = 5 USDT）。我已用邀请码 VIP700 注册币安并完成实名认证，请核实发放。");
+          setMsg("claimMsg", "领取信息已复制，去发给运营方吧！", true);
+        });
+        var cm = document.getElementById("cMark");
+        if (cm) cm.addEventListener("click", function(){
+          claimedBlocks += claimableBlocks();
+          saveState();
+          updatePointsUI();
+          sndWin();
+          showClaim();
+          setMsg("claimMsg", "✅ 已标记领取，积分余额继续累积，攒够下一个 100,000 分还能再领 5 USDT。", true);
+        });
+        document.getElementById("cBack").addEventListener("click", function(){ showGate(); });
+      }
+      function showRedeem(){
+        if (isEn()){ showRedeemEN(); return; }
+        var html =
+          '<div class="big-emoji">🎁</div><h2>兑换码加血</h2>' +
+          '<p><b>第 1 步 · 提交核实：</b>把你的游戏 ID 和币安 UID 发给运营方，运营方会核对你是否用邀请码 <b>VIP700</b> 注册并完成实名认证。</p>' +
+          '<div class="redeem-box">' +
+            '<p>你的游戏 ID：<span class="code-chip">' + playerId + '</span></p>' +
+            '<input class="txt-input" id="uidInput" placeholder="输入你的币安 UID（在币安 App 里可查）" autocomplete="off" />' +
+            '<button class="btn sm" id="rCopy">📋 复制核实信息发给运营方</button>' +
+          '</div>' +
+          '<p><b>第 2 步 · 输入兑换码：</b>运营方核实通过后会发你一次性兑换码（PIGR- 开头），输入下面就能把血条直接回满到 10 格。码只能用一次，用过会一直记为已用，自己随便编的码无效。</p>' +
+          '<div class="input-row"><input class="txt-input" id="redeemCode" placeholder="输入运营方发的兑换码，如 PIGR-XXXXXXXXXX" autocomplete="off" /><button class="mini-btn" id="rRedeem" type="button">兑换</button></div>' +
+          '<p class="msg" id="redeemMsg"></p>' +
+          '<div class="safe-tip">✅ 安全提示：核实全程只需提供游戏 ID 和币安 UID，不要把密码、短信验证码发给任何人。<br/>💾 血条和已用过的兑换码保存在本机浏览器，刷新、关页、返回都不会重置；清除浏览器数据或换设备才会清零。</div>' +
+          '<button class="btn secondary" id="rBack">← 返回</button>';
+        showOverlay(html);
+        document.getElementById("rCopy").addEventListener("click", function(){
+          var uid = (document.getElementById("uidInput").value || "").trim();
+          copyText("你好，我已用邀请码 VIP700 完成币安注册 + 实名认证，请核实加血。我的游戏 ID：" + playerId + "，币安 UID：" + (uid || "（还没填）"));
+          setMsg("redeemMsg", "核实信息已复制，去发给运营方吧！", true);
+        });
+        document.getElementById("rRedeem").addEventListener("click", redeemByCode);
+        document.getElementById("rBack").addEventListener("click", function(){ showGate(); });
+      }
+      function tryStart(level){
+        if (lives <= 0){ mode = "idle"; showGate(false); return; }
+        lives--;
+        saveState();
+        hideOverlay();
+        startLevel(level);
+        updateLivesUI();
+      }
+      function startLevel(level){
+        S = { level: level, started: true, over: false };
+        R = newRun(level);
+        mode = "run";
+        paused = false;
+        document.getElementById("btnPause").textContent = "⏸";
+        forceHUD();
+        updatePointsUI();
+        toast(L().startToast(levelName(level), fmtNum(LEVELS[level].target), lives));
+      }
+      /* level map: 15 buttons */
+      (function buildLevelMap(){
+        var map = document.getElementById("levelMap");
+        for (var lv=1; lv<=TOTAL_LEVELS; lv++){
+          (function(n){
+            var b = document.createElement("button");
+            b.type = "button"; b.className = "lv-btn";
+            b.setAttribute("aria-label", L().levelAria(n));
+            var num = document.createElement("span"); num.className = "lv-n"; num.textContent = n;
+            var sub = document.createElement("span"); sub.className = "lv-s"; sub.textContent = "";
+            b.appendChild(num); b.appendChild(sub);
+            b.addEventListener("click", function(){ tryStart(n); });
+            map.appendChild(b);
+          })(lv);
+        }
+      })();
+      document.getElementById("btnAddLives").addEventListener("click", function(){
+        var inRun = (mode === "run" && R && !S.over);
+        if (inRun && !paused) togglePause();
+        showGate(!!inRun);
+      });
+      document.getElementById("btnClaim").addEventListener("click", function(){ showClaim(); });
+      window.addEventListener("resize", function(){ sizeCanvas(); });
+
+      /* ---------------- language switching ---------------- */
+      function applyI18n(){
+        var s = L();
+        try{ document.documentElement.lang = isEn() ? "en" : "zh-CN"; }catch(e){}
+        document.title = s.docTitle;
+        function setText(id, txt){ var el = document.getElementById(id); if (el) el.textContent = txt; }
+        function setHTML(id, html){ var el = document.getElementById(id); if (el) el.innerHTML = html; }
+        setText("alertBar", s.alert);
+        setText("mainTitle", s.title);
+        setText("mainSubtitle", s.subtitle);
+        setText("labelDist", s.dist);
+        setText("labelTarget", s.target);
+        setText("labelLives", s.livesLabel);
+        setText("btnAddLives", s.addLives);
+        setText("labelPoints", s.pointsLabel);
+        setText("btnClaim", s.claimBtn);
+        setText("ctlLeftName", s.ctlLeft);
+        setText("ctlJumpName", s.ctlJump);
+        setText("ctlSlideName", s.ctlSlide);
+        setText("ctlRightName", s.ctlRight);
+        setHTML("ctrlTip", s.ctrlTip);
+        setHTML("howtoText", s.howto);
+        var lm = document.getElementById("levelMap"); if (lm) lm.setAttribute("aria-label", s.levelMapAria);
+        if (canvas) canvas.setAttribute("aria-label", s.stageAria);
+        var zhBtn = document.getElementById("langZh"); if (zhBtn) zhBtn.classList.toggle("active", !isEn());
+        var enBtn = document.getElementById("langEn"); if (enBtn) enBtn.classList.toggle("active", isEn());
+        if (lm){
+          for (var i=0;i<lm.children.length;i++) lm.children[i].setAttribute("aria-label", s.levelAria(i+1));
+        }
+        forceHUD();
+        updatePointsUI();
+        updateLivesUI();
+      }
+      function setLang(next){
+        if (next !== "en" && next !== "zh") return;
+        if (next === LANG){ applyI18n(); return; }
+        LANG = next;
+        try{ localStorage.setItem(LANG_KEY, LANG); }catch(e){}
+        var overlayWasOpen = overlay && overlay.classList.contains("show");
+        var wasClaim = overlayWasOpen && !!document.getElementById("claimUid");
+        var wasRedeem = overlayWasOpen && !!document.getElementById("redeemCode");
+        var wasGate = overlayWasOpen && !!document.getElementById("gStartNext");
+        var wasWin = overlayWasOpen && !!document.getElementById("ovReplay");
+        var wasDeath = overlayWasOpen && !!document.getElementById("ovRetry");
+        applyI18n();
+        if (overlayWasOpen && !wasWin){
+          if (wasClaim) showClaim();
+          else if (wasRedeem) showRedeem();
+          else if (wasDeath) showDeath();
+          else if (wasGate) showGate();
+        } else if (overlayWasOpen && wasWin){
+          /* win overlay keeps its banked state; rebuild it in the new language */
+          onWinRebuild();
+        }
+      }
+      function onWinRebuild(){
+        /* rebuild win overlay without re-banking points or re-firing invite completion */
+        var cb = claimableBlocks();
+        var isFinal = S.level >= TOTAL_LEVELS;
+        var allDone = clearedLevels.length >= TOTAL_LEVELS;
+        var pointsHtml = '<div class="win-points">' + pointsSummaryHTML() + '</div>';
+        var html =
+          '<div class="big-emoji">' + (isFinal ? '👑🐷👑' : '🐷🏆') + '</div>' +
+          '<h2>' + (isFinal ? L().winTitleFinal : L().winTitle(S.level)) + '</h2>' +
+          '<p>' + (allDone ? L().winDescAll : (isFinal ? L().winDescFinal : L().winDescNormal)) + '</p>' +
+          pointsHtml +
+          (cb > 0 ? '<button class="btn bn-btn" id="ovClaim">' + L().winClaim(cb * USDT_PER_BLOCK) + '</button>' : '') +
+          (!isFinal ? '<button class="btn" id="ovNext">' + L().winNext(S.level+1) + '</button>' : '') +
+          '<button class="btn secondary" id="ovReplay">' + L().winReplay(S.level) + '</button>' +
+          (isFinal ? '<button class="btn secondary" id="ovBack1">' + L().winBack1 + '</button>' : '');
+        showOverlay(html);
+        var oc = document.getElementById("ovClaim");
+        if (oc) oc.addEventListener("click", function(){ showClaim(); });
+        var on = document.getElementById("ovNext");
+        if (on) on.addEventListener("click", function(){ tryStart(S.level+1); });
+        document.getElementById("ovReplay").addEventListener("click", function(){ tryStart(S.level); });
+        var ob = document.getElementById("ovBack1");
+        if (ob) ob.addEventListener("click", function(){ tryStart(1); });
+      }
+
+      (function wireLangToggle(){
+        var zb = document.getElementById("langZh"); if (zb) zb.addEventListener("click", function(){ setLang("zh"); });
+        var eb = document.getElementById("langEn"); if (eb) eb.addEventListener("click", function(){ setLang("en"); });
+      })();
+      applyI18n();
+      sizeCanvas();
+      forceHUD();
+      updatePointsUI();
+      showGate(false);
+      requestAnimationFrame(frame);
+      recordInviteVisit();   /* opened via ?ref= link: record the pending invite */
+      claimInviteCredits();  /* redeem friends' completed invites for +1 life each */
+    })();
+    </script>
+  </body>
+</html>
