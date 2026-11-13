@@ -1,0 +1,22 @@
+name: rename-pig
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore real file as index.html
+        run: |
+          git config user.name "ada65753-code"
+          git config user.email "ada65753-code@users.noreply.github.com"
+          git checkout 4494d5b -- zhu-liao-ge-zhu.html
+          git rm index.html
+          git mv zhu-liao-ge-zhu.html index.html
+          git rm .github/workflows/rename-pig.yml
+          git commit -m "小猪换真实照片"
+          git push
