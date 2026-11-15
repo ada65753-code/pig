@@ -488,6 +488,7 @@
       /* ---------------- lives & referral (persisted in this browser) ---------------- */
       var MAX_LIVES = 10, START_LIVES = 3;
       var BN_URL = "https://www.binance.com/join?ref=V10086";
+      var GAME_URL = "https://ada65753-code.github.io/pig/";
       var SAVE_KEY = "zlgz_save_v2";
       /* Operator-issued one-time redeem codes are verified by SHA-256 hash
          only: the plaintext codes never ship in this page, so reading the
@@ -512,6 +513,7 @@
       var usedRedeemCodes = [];
       var myInviteCode = genCode("PIG-");
       var playerId = genCode("PIG-ID-");
+      function inviteLink(){ return GAME_URL + "?ref=" + myInviteCode; }
       var clearedLevels = [];   /* levels whose first-clear points are banked */
       var claimedBlocks = 0;    /* 100,000-point blocks already paid out (marked locally after receipt) */
       function pointsTotal(){ return clearedLevels.length * POINTS_PER_LEVEL; }
@@ -608,29 +610,35 @@
           if (inviteBackendOk === false){
             return '<div class="panel-title">👥 Invite Friends (reward issued manually)</div>' +
               '<p>Your invite code: <span class="code-chip">' + myInviteCode + '</span></p>' +
+              '<p>Your invite link (code already included — just copy and send, no manual editing):</p>' +
+              '<p><span class="link-text">' + inviteLink() + '</span></p>' +
               '<button class="btn sm" id="gCopyInvite">📋 Copy invite message for friends</button>' +
-              '<p class="panel-note">Honest note: if a friend enters your code on their own phone, this page cannot add lives across devices, so there is <b>no “enter code to get lives”</b> here — entering a code gives nobody lives. To claim the reward: after your friend plays, send your invite code + your friend\'s Game ID to the operator; after verification the operator sends you a one-time redeem code to refill lives in the Binance panel below.</p>' +
+              '<p class="panel-note">Honest note: if a friend enters your code on their own phone, this page cannot add lives across devices, so there is <b>no “enter code to get lives”</b> here — entering a code gives nobody lives. To claim the reward: after your friend plays via your link, send your invite code + your friend\'s Game ID to the operator; after verification the operator sends you a one-time redeem code to refill lives in the Binance panel below.</p>' +
               '<p class="msg" id="inviteMsg"></p>';
           }
           return '<div class="panel-title">👥 Invite Friends (auto +1 life on clear)</div>' +
             '<p>Your invite code: <span class="code-chip">' + myInviteCode + '</span></p>' +
-            '<p>How to invite: send the game link to a friend and ask them to add <span class="code-chip">?ref=' + myInviteCode + '</span> at the end of the link before opening it. Easiest: tap the button below to copy a ready-made message — the parameter is already included.</p>' +
+            '<p>Your invite link (code already included — just copy and send, no manual editing):</p>' +
+            '<p><span class="link-text">' + inviteLink() + '</span></p>' +
             '<button class="btn sm" id="gCopyInvite">📋 Copy invite message for friends</button>' +
-            '<p class="panel-note">Auto rule: when a friend opens the link with <b>?ref=' + myInviteCode + '</b> and <b>clears any 1 level</b>, the invite counts — next time you open the game you <b>automatically get +1 life</b> (max 10), no operator and no redeem code needed. Anti-abuse: one device counts once, self-invites do not count, and merely opening the link is not enough — a level must be cleared.</p>' +
+            '<p class="panel-note">Auto rule: when a friend opens <b>your invite link above</b> and <b>clears any 1 level</b>, the invite counts — next time you open the game you <b>automatically get +1 life</b> (max 10), no operator and no redeem code needed. Anti-abuse: one device counts once, self-invites do not count, and merely opening the link is not enough — a level must be cleared.</p>' +
             '<p class="msg" id="inviteMsg"></p>';
         }
         if (inviteBackendOk === false){
           return '<div class="panel-title">👥 邀请好友（奖励人工核发）</div>' +
             '<p>你的邀请码：<span class="code-chip">' + myInviteCode + '</span></p>' +
+            '<p>你的专属邀请链接（已带邀请码，复制就能发，不用自己拼）：</p>' +
+            '<p><span class="link-text">' + inviteLink() + '</span></p>' +
             '<button class="btn sm" id="gCopyInvite">📋 复制邀请文案发给好友</button>' +
-            '<p class="panel-note">诚实说明：好友在自己手机上填你的邀请码，本页没法跨设备把血加到你这边，所以这里<b>不提供「填码领血」</b>，填了也不会给任何人加血。邀请奖励这样领：好友来玩后，把你的邀请码和好友的游戏 ID 一起发给运营方，运营方核对后会发你一个一次性兑换码，你在下方币安面板里输入兑换码回血。</p>' +
+            '<p class="panel-note">诚实说明：好友在自己手机上填你的邀请码，本页没法跨设备把血加到你这边，所以这里<b>不提供「填码领血」</b>，填了也不会给任何人加血。邀请奖励这样领：好友点你的链接来玩后，把你的邀请码和好友的游戏 ID 一起发给运营方，运营方核对后会发你一个一次性兑换码，你在下方币安面板里输入兑换码回血。</p>' +
             '<p class="msg" id="inviteMsg"></p>';
         }
         return '<div class="panel-title">👥 邀请好友（过关自动加血）</div>' +
           '<p>你的邀请码：<span class="code-chip">' + myInviteCode + '</span></p>' +
-          '<p>邀请办法：把游戏链接发给好友，并让好友在链接地址最后加上 <span class="code-chip">?ref=' + myInviteCode + '</span> 再打开。点下方按钮复制现成文案发给好友最省事，参数已经带好了。</p>' +
+          '<p>你的专属邀请链接（已带邀请码，复制就能发，不用自己拼）：</p>' +
+          '<p><span class="link-text">' + inviteLink() + '</span></p>' +
           '<button class="btn sm" id="gCopyInvite">📋 复制邀请文案发给好友</button>' +
-          '<p class="panel-note">自动规则：好友点开带 <b>?ref=' + myInviteCode + '</b> 的链接进来玩，<b>过完任意 1 关</b>就算邀请成功——你下次打开游戏会<b>自动 +1 格血</b>（血条上限 10 格），不用找运营方、不用兑换码。防刷：同一台设备只算一次，自己邀请自己不算，光打开不算、必须过关才算。</p>' +
+          '<p class="panel-note">自动规则：好友点开<b>你上面的专属链接</b>进来玩，<b>过完任意 1 关</b>就算邀请成功——你下次打开游戏会<b>自动 +1 格血</b>（血条上限 10 格），不用找运营方、不用兑换码。防刷：同一台设备只算一次，自己邀请自己不算，光打开不算、必须过关才算。</p>' +
           '<p class="msg" id="inviteMsg"></p>';
       }
       function renderInvitePanel(){
@@ -640,22 +648,31 @@
         var btn = document.getElementById("gCopyInvite");
         if (!btn) return;
         btn.addEventListener("click", function(){
+          var link = inviteLink();
           if (isEn()){
             if (inviteBackendOk === false){
-              copyText("🐷 I'm playing Piggy Temple Run — dodge statues, jump logs, slide under beams and run the temple track, super addictive! Come play with me — my invite code is " + myInviteCode + ". After you play, send me your Game ID so I can ask the operator to verify my invite reward. Thanks!");
-              setMsg("inviteMsg", "Invite message copied — send it to your friend! The operator will verify and send you a redeem code.", true);
+              copyText("🐷 You have to try this — Piggy Temple Run is ridiculously addictive!\nSprint through an ancient temple as a tiny pig: dodge statues, leap over fallen logs, slide under stone beams — tense, silly, and you somersault when you crash!\n🎮 Play via my link (my invite code is already in it, just tap to play):\n" + link + "\n🏆 15 levels — first clear of each gives +10,000 pts, and 100,000 pts = 5 USDT!\n❤️ After you clear any 1 level through my link, send me your Game ID so I can claim my invite reward from the operator — thanks!").then(function(ok){
+                if (ok) setMsg("inviteMsg", "Invite message copied — send it to your friend! The operator will verify and send you a redeem code.", true);
+                else setMsg("inviteMsg", "Copy failed — long-press the invite link above to copy it manually and send it to your friend.", false);
+              });
             } else {
-              copyText("🐷 I'm playing Piggy Temple Run — dodge statues, jump logs, slide under beams and run the temple track, super addictive! Play here: open the game link with ?ref=" + myInviteCode + " added at the end (so it counts as my invite). Clear 1 level and I'll auto get +1 life next time I open the game. Thanks!");
-              setMsg("inviteMsg", "Invite message copied — send it to your friend! When they clear 1 level, you'll auto get +1 life next time you open the game.", true);
+              copyText("🐷 You have to try this — Piggy Temple Run is ridiculously addictive!\nSprint through an ancient temple as a tiny pig: dodge statues, leap over fallen logs, slide under stone beams — tense, silly, and you somersault when you crash!\n🎮 Play via my link (my invite code is already in it, just tap to play):\n" + link + "\n🏆 15 levels — first clear of each gives +10,000 pts, and 100,000 pts = 5 USDT!\n❤️ Clear any 1 level through my link and I automatically get +1 life next time I open the game. Help a pig out — thanks!").then(function(ok){
+                if (ok) setMsg("inviteMsg", "Invite message copied — send it to your friend! When they clear 1 level, you'll auto get +1 life next time you open the game.", true);
+                else setMsg("inviteMsg", "Copy failed — long-press the invite link above to copy it manually and send it to your friend.", false);
+              });
             }
             return;
           }
           if (inviteBackendOk === false){
-            copyText("🐷 我在玩《猪猪勇闯神庙》跑酷，躲石像、跳倒木、钻石梁，超上头！来陪我玩两局吧，我的邀请码是 " + myInviteCode + "——玩过之后把你的游戏 ID 发我，我拿去找运营方核对邀请奖励，谢谢啦！");
-            setMsg("inviteMsg", "邀请文案已复制，去发给好友吧！奖励由运营方核对后发兑换码给你。", true);
+            copyText("🐷 安利你一个超上头的跑酷小游戏——《猪猪勇闯神庙》！\n操控小猪在神庙里狂奔：躲石像、跳倒木、滑铲钻石梁，又紧张又搞笑，被撞还会翻个跟头，根本停不下来！\n🎮 点我的链接直接玩（已带我的邀请码，点开就能玩）：\n" + link + "\n🏆 共 15 关，每关首通 +10,000 积分，攒够 100,000 分还能兑 5 USDT！\n❤️ 你用这个链接过完任意 1 关后，把你的游戏 ID 发我，我拿去找运营方核对邀请奖励，谢啦！").then(function(ok){
+              if (ok) setMsg("inviteMsg", "邀请文案已复制，去发给好友吧！奖励由运营方核对后发兑换码给你。", true);
+              else setMsg("inviteMsg", "复制失败，请长按上方邀请链接手动复制，再发给好友。", false);
+            });
           } else {
-            copyText("🐷 我在玩《猪猪勇闯神庙》跑酷，躲石像、跳倒木、钻石梁，超上头！来陪我玩：打开游戏链接时，在地址最后加上 ?ref=" + myInviteCode + " 再打开（这样就算我邀请的），你过完 1 关，我下次打开游戏就自动 +1 格血，谢谢啦！");
-            setMsg("inviteMsg", "邀请文案已复制，去发给好友吧！好友过完 1 关，你下次打开游戏自动 +1 格血。", true);
+            copyText("🐷 安利你一个超上头的跑酷小游戏——《猪猪勇闯神庙》！\n操控小猪在神庙里狂奔：躲石像、跳倒木、滑铲钻石梁，又紧张又搞笑，被撞还会翻个跟头，根本停不下来！\n🎮 点我的链接直接玩（已带我的邀请码，点开就能玩）：\n" + link + "\n🏆 共 15 关，每关首通 +10,000 积分，攒够 100,000 分还能兑 5 USDT！\n❤️ 你用这个链接过完任意 1 关，我下次打开游戏就自动 +1 格血——帮小猪续个命，谢啦！").then(function(ok){
+              if (ok) setMsg("inviteMsg", "邀请文案已复制，去发给好友吧！好友过完 1 关，你下次打开游戏自动 +1 格血。", true);
+              else setMsg("inviteMsg", "复制失败，请长按上方邀请链接手动复制，再发给好友。", false);
+            });
           }
         });
       }
@@ -1424,18 +1441,27 @@
         m.className = "msg" + (ok ? " ok" : "");
       }
       function copyText(text){
-        function done(){ toast(L().copied); }
-        function fallback(){
-          var ta = document.createElement("textarea");
-          ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
-          document.body.appendChild(ta); ta.select();
-          try{ document.execCommand("copy"); done(); }
-          catch(e){ toast(L().copyFail); }
-          ta.remove();
+        function tryFallback(){
+          try{
+            var ta = document.createElement("textarea");
+            ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0"; ta.style.left = "-9999px"; ta.style.top = "0";
+            document.body.appendChild(ta); ta.focus(); ta.select();
+            var ok = false;
+            try{ ok = !!document.execCommand("copy"); }catch(e){ ok = false; }
+            ta.remove();
+            return ok;
+          }catch(e){ return false; }
         }
         if (navigator.clipboard && navigator.clipboard.writeText){
-          navigator.clipboard.writeText(text).then(done, fallback);
-        } else fallback();
+          return navigator.clipboard.writeText(text).then(function(){ toast(L().copied); return true; }, function(){
+            var ok = tryFallback();
+            toast(ok ? L().copied : L().copyFail);
+            return ok;
+          });
+        }
+        var ok2 = tryFallback();
+        toast(ok2 ? L().copied : L().copyFail);
+        return Promise.resolve(ok2);
       }
       function redeemByCode(){
         var input = document.getElementById("redeemCode");
@@ -1530,8 +1556,10 @@
         document.getElementById("cCopy").addEventListener("click", function(){
           var uid = (document.getElementById("claimUid").value || "").trim();
           var lvList = clearedLevels.slice().sort(function(a,b){return a-b;}).join(", ") || "none";
-          copyText("Hello, I would like to claim USDT for Piggy Temple Run points. Game ID: " + playerId + ", Binance UID: " + (uid || "(not filled in)") + ", Cleared levels: " + lvList + ", Total points: " + fmtNum(pointsTotal()) + ", Claimable: " + (claimableBlocks() * USDT_PER_BLOCK) + " USDT (100,000 pts = 5 USDT). I registered on Binance with referral code V10086 and completed identity verification. Please verify and pay.");
-          setMsg("claimMsg", "Claim info copied — send it to the operator!", true);
+          copyText("Hello, I would like to claim USDT for Piggy Temple Run points. Game ID: " + playerId + ", Binance UID: " + (uid || "(not filled in)") + ", Cleared levels: " + lvList + ", Total points: " + fmtNum(pointsTotal()) + ", Claimable: " + (claimableBlocks() * USDT_PER_BLOCK) + " USDT (100,000 pts = 5 USDT). I registered on Binance with referral code V10086 and completed identity verification. Please verify and pay.").then(function(ok){
+            if (ok) setMsg("claimMsg", "Claim info copied — send it to the operator!", true);
+            else setMsg("claimMsg", "Copy failed — please copy your Game ID above and your Binance UID manually and send them to the operator.", false);
+          });
         });
         var cm = document.getElementById("cMark");
         if (cm) cm.addEventListener("click", function(){
@@ -1561,8 +1589,10 @@
         showOverlay(html);
         document.getElementById("rCopy").addEventListener("click", function(){
           var uid = (document.getElementById("uidInput").value || "").trim();
-          copyText("Hello, I registered on Binance with referral code V10086 and completed identity verification. Please verify my life refill. My Game ID: " + playerId + ", Binance UID: " + (uid || "(not filled in)"));
-          setMsg("redeemMsg", "Verification info copied — send it to the operator!", true);
+          copyText("Hello, I registered on Binance with referral code V10086 and completed identity verification. Please verify my life refill. My Game ID: " + playerId + ", Binance UID: " + (uid || "(not filled in)")).then(function(ok){
+            if (ok) setMsg("redeemMsg", "Verification info copied — send it to the operator!", true);
+            else setMsg("redeemMsg", "Copy failed — please copy your Game ID above and your Binance UID manually and send them to the operator.", false);
+          });
         });
         document.getElementById("rRedeem").addEventListener("click", redeemByCode);
         document.getElementById("rBack").addEventListener("click", function(){ showGate(); });
@@ -1643,8 +1673,10 @@
         document.getElementById("cCopy").addEventListener("click", function(){
           var uid = (document.getElementById("claimUid").value || "").trim();
           var lvList = clearedLevels.slice().sort(function(a,b){return a-b;}).join("、") || "无";
-          copyText("你好，我要领取《猪猪勇闯神庙》积分兑换 USDT。游戏 ID：" + playerId + "，币安 UID：" + (uid || "（还没填）") + "，已通关关卡：" + lvList + "，总积分：" + fmtNum(pointsTotal()) + "，可兑换：" + (claimableBlocks() * USDT_PER_BLOCK) + " USDT（100,000 分 = 5 USDT）。我已用邀请码 V10086 注册币安并完成实名认证，请核实发放。");
-          setMsg("claimMsg", "领取信息已复制，去发给运营方吧！", true);
+          copyText("你好，我要领取《猪猪勇闯神庙》积分兑换 USDT。游戏 ID：" + playerId + "，币安 UID：" + (uid || "（还没填）") + "，已通关关卡：" + lvList + "，总积分：" + fmtNum(pointsTotal()) + "，可兑换：" + (claimableBlocks() * USDT_PER_BLOCK) + " USDT（100,000 分 = 5 USDT）。我已用邀请码 V10086 注册币安并完成实名认证，请核实发放。").then(function(ok){
+            if (ok) setMsg("claimMsg", "领取信息已复制，去发给运营方吧！", true);
+            else setMsg("claimMsg", "复制失败，请手动复制上方游戏 ID 和你填的币安 UID 发给运营方。", false);
+          });
         });
         var cm = document.getElementById("cMark");
         if (cm) cm.addEventListener("click", function(){
@@ -1675,8 +1707,10 @@
         showOverlay(html);
         document.getElementById("rCopy").addEventListener("click", function(){
           var uid = (document.getElementById("uidInput").value || "").trim();
-          copyText("你好，我已用邀请码 V10086 完成币安注册 + 实名认证，请核实加血。我的游戏 ID：" + playerId + "，币安 UID：" + (uid || "（还没填）"));
-          setMsg("redeemMsg", "核实信息已复制，去发给运营方吧！", true);
+          copyText("你好，我已用邀请码 V10086 完成币安注册 + 实名认证，请核实加血。我的游戏 ID：" + playerId + "，币安 UID：" + (uid || "（还没填）")).then(function(ok){
+            if (ok) setMsg("redeemMsg", "核实信息已复制，去发给运营方吧！", true);
+            else setMsg("redeemMsg", "复制失败，请手动复制上方游戏 ID 和你填的币安 UID 发给运营方。", false);
+          });
         });
         document.getElementById("rRedeem").addEventListener("click", redeemByCode);
         document.getElementById("rBack").addEventListener("click", function(){ showGate(); });
